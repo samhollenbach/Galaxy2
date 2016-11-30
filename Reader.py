@@ -25,22 +25,26 @@ ax.set_zlim(bottom=-figsizeZ, top=figsizeZ, emit=True, auto=False)
 
 
 plt.tick_params(axis='both', color='r', labelcolor='r')
-ax.set_xlabel('X Label')
-ax.set_ylabel('Y Label')
-ax.set_zlabel('Z Label')
 
 def on_close(event):
     event.canvas.figure.axes[0].has_been_closed = True
 
+
+ax.xaxis.label.set_color('red')
+ax.yaxis.label.set_color('red')
+ax.zaxis.label.set_color('red')
 
 fig.canvas.mpl_connect('close_event', on_close)
 
 def updateplot(iteration,xs,ys,zs):
     ax.clear()
     ax.autoscale(enable=False)
-    ax.text2D(0.05, 0.95, "Iteration: " + repr(iteration), transform=ax.transAxes, color='red')
-    ax.scatter(xs, ys, zs, c='r', marker='o')
+    ax.set_xlabel('(pc)')
+    ax.set_ylabel('(pc)')
+    ax.set_zlabel('(pc)')
 
+    ax.text2D(0.05, 0.95, "Iteration: " + repr(iteration), transform=ax.transAxes, color='red')
+    ax.scatter(xs, ys, zs, c='r', marker='o', s=9)
     plt.pause(0.001)
 
 
