@@ -7,14 +7,8 @@ Galaxy_v1 can be found at https://github.com/samhollenbach/Galaxy
 
 Contact me at shollenb@macalester.edu if you have any quesitons
 
---TODO--
+
 
 All simulation code is now ported from previous project
 
-New:
-
-  -Dark Matter Distribution based on NFW paper
-  
-  -3d calculations
-  
-  -3d visualization
+Simulation now supports 3D calculations and visualization and has NFW density profile approximations for Dark Matter
