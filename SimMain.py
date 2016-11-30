@@ -14,24 +14,27 @@ from datetime import datetime
 #### ALL DISTANCE UNITS ARE IN PARSECS ####
 #### ALL MASS UNITS ARE IN SOLAR MASSES ####
 
-
-iterations = 200
-particleNum = 500
-timeStep = 1e5
-currentIteration = 0
-smbh_mass = 1.0e5
-stars = []
-galaxies = []
+# Sim Vairables
+iterations = 300
+particleNum = 250
+timeStep = 1e14  # Seconds
 galaxy_data_file = "galaxy_data.txt"
 sim_data_file = "sim_data.txt"
-G = 4.51722e-30  # PC^3 / (SM * s^2)
-# G_CONSTANT = 6.67e-11  ##OLD -> Converted to PC^3 / (SM * s^2)
-# H = 67.6 * 3.24078e-14
+
+# Galaxy Variables
+smbh_mass = 4.2e6  ###Roughly Sgittarius A* mass in solar masses###
+galaxy_width = 35000
+galaxy_height = 300
+galaxy_bulge_width = 1000
+galaxy_bulge_height = 1000
+stars = []
+galaxies = []
+G = 4.51722e-30  # G constant converted to units: PC^3 / (SM * s^2)
 
 
 # NFW Variables
-r_s = 5e15
-r_200 = 20 * r_s
+r_s = 0.87e5
+r_200 = 10 * r_s
 c = r_200 / r_s  ## MILKY WAY ~10-15 --> Set to 12.5
 
 # NFW Constants
@@ -93,61 +96,29 @@ class Galaxy:
         self.color = color
         self.setrandommultiplier()
 
-    # Sets star velocity perpendicular to the center of the galaxy
-    def set_star_velocity(self, star):
-        xt = self.x - star.x
-        yt = self.y - star.y
-
-        a = np.array([xt, yt, 0])
-        r = np.linalg.norm(a)
-
-        # Initial velocity in pc/s
-        # velo = 7.129e-12  #220 km/s in pc/s
-        velo = 7.129e-3
-
-        # Center of galaxy
-        r1 = 2000
-        if r < r1:
-            velo *= (0.5 + (0.5 * r) / r1)
-
-        # Set direction of velocity
-        theta = math.atan(yt / xt)
-        if xt < 0:
-            r *= -1
-        tempX = -(r * math.cos(theta - 0.00001) - r * math.cos(theta))
-        tempY = -tempX * xt / yt
-
-        v = np.array([tempX, tempY, 0])
-        speedscale = (velo / np.linalg.norm(v))
-        v *= speedscale
-        v += self.vel
-        star.velocity = v
-
     def setstardistribution(self):
         smbh = Star(smbh_mass, 0., 0., 0., self)
         stars.append(smbh)
         for i in range(1, self.numstars):
             printProgress(i + 1, self.numstars, prefix="Setting Star Distributions:", suffix="Completed", barLength=50)
 
+            #Determines random x and y position for star
             dist = self.getstarranddistributionrandomnum()
-            rsqr = dist * dist
+            dist2 = dist * dist
             m = random.random() * 2 + 1
-            randsign = random.random()
-            y1 = math.sqrt(rsqr / (m * m))
-            x1 = math.sqrt(rsqr - (y1 * y1))
-            x1 *= 5
-            y1 *= 5
-            if randsign < 0.25:
-                y1 = -y1
-                x1 = -x1
-            elif randsign < 0.5:
-                y1 = -y1
-            elif randsign < 0.75:
-                x1 = -x1
+            y1 = math.sqrt(dist2 / (m * m))
+            x1 = math.sqrt(dist2 - (y1 * y1))
 
-            z1 = (self.height * random.random()) - (self.height/2)
+            sign = [1, -1]
+            x1 *= random.choice(sign)
+            y1 *= random.choice(sign)
 
-            # ADD IN Z COORD RANDOMNESS
+            # Determines z position for star
+            if dist < galaxy_bulge_width:
+                z1 = (galaxy_bulge_height * random.random()) - (galaxy_bulge_height / 2)
+            else:
+                z1 = (self.height * random.random()) - (self.height/2)
+
 
             # Mass in solar masses
             mass = 1 * (0.8 + random.random() * 10)
@@ -166,7 +137,6 @@ class Galaxy:
 
     # For star distribution calculations
     def getstarranddistributionrandomnum(self):
-
         n = 1
         r = random.random() * self.randommultiplier
         r -= self.starden(n)
@@ -180,7 +150,37 @@ class Galaxy:
     # Used to determine density of stars in galaxy by radius
     @staticmethod
     def starden(r):
-        return 5 * np.exp(-r / 3000)
+        return np.exp(-r / 3000)
+
+    # Sets star velocity perpendicular to the center of the galaxy
+    def set_star_velocity(self, star):
+        xt = self.x - star.x
+        yt = self.y - star.y
+
+        a = np.array([xt, yt, 0])
+        r = np.linalg.norm(a)
+
+        # Initial velocity in pc/s
+        # velo = 7.129e-12  #220 km/s in pc/s
+        velo = 7.129e-12
+
+        # Center of galaxy
+        r1 = 1000
+        if r < r1:
+            velo *= (0.5 + (0.5 * r) / r1)
+
+        # Set direction of velocity
+        theta = math.atan(yt / xt)
+        if xt < 0:
+            r *= -1
+        tempX = -(r * math.cos(theta - 0.00001) - r * math.cos(theta))
+        tempY = -tempX * xt / yt
+
+        v = np.array([tempX, tempY, 0])
+        speedscale = (velo / np.linalg.norm(v))
+        v *= speedscale
+        v += self.vel
+        star.velocity = v
 
     # Updates the position of the galactic center
     def update(self, t):
@@ -193,7 +193,7 @@ class Galaxy:
 def single_galaxy():
     print("Creating a single Galaxy for you...\n")
     stars = []
-    mw = Galaxy(15000, 1000, 0, 0, 0, particleNum - 1, 1)
+    mw = Galaxy(galaxy_width, galaxy_height, 0, 0, 0, particleNum - 1, 1)
     mw.velocity = np.array([0, 0, 0])
     mw.setstardistribution()
     galaxies.append(mw)
@@ -204,8 +204,8 @@ def single_galaxy():
 def double_galaxy():
     print("Creating two Galaxies for you...\n")
     stars = []
-    mw = Galaxy(15000, 1000, -80000, -60000, 0, particleNum / 2 - 1, 1)
-    an = Galaxy(15000, 1000, 80000, 60000, 0, particleNum / 2 - 1, 2)
+    mw = Galaxy(galaxy_width, galaxy_height, -80000, -60000, 0, particleNum / 2 - 1, 1)
+    an = Galaxy(galaxy_width, galaxy_height, 80000, 60000, 0, particleNum / 2 - 1, 2)
     mw.velocity = np.array([10, 1, 0])
     an.velocity = np.array([-10, -1, 0])
     mw.setstardistribution()
@@ -261,7 +261,7 @@ def getdarkmatterforce(s, g):
     r = getdist(g.x, g.y, g.z, s.x, s.y, s.z)
 
     # Integrated dark matter mass within radius r
-    mdm = abs(P_crit * sig * math.pow(r_s, 3) * (math.log((r_s + r) / r_s) - r / (r_s + r)))
+    mdm = 4 * math.pi * P_crit * sig * math.pow(r_s, 3) * (math.log((r_s + r) / r_s) - (r / (r_s + r)))
 
     # Create gravity vector for star from dark matter mass pointing at center of galaxy
     vec = np.array([g.x, g.y, g.z]) - np.array([s.x, s.y, s.z])
@@ -288,6 +288,7 @@ def calculatemovesfromforce(t):
 
 simStartTime = datetime.now().time()
 updateTime = simStartTime
+currentIteration = 0
 
 # Start sim loop
 for n in range(1, iterations+1):

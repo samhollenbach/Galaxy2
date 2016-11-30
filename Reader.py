@@ -17,10 +17,13 @@ ax = fig.add_subplot(111, projection='3d')
 ax.has_been_closed = False
 ax.set_axis_bgcolor('black')
 n = 100
-plt.xlim([-80000,80000])
-plt.ylim([-40000,40000])
+figsizeX = 10000
+figsizeY = 10000
+figsizeZ = 10000
+plt.xlim([-figsizeX, figsizeX])
+plt.ylim([-figsizeY, figsizeY])
 
-
+plt.tick_params(axis='both', color='r', labelcolor='r')
 ax.set_xlabel('X Label')
 ax.set_ylabel('Y Label')
 ax.set_zlabel('Z Label')
@@ -34,10 +37,11 @@ fig.canvas.mpl_connect('close_event', on_close)
 def updateplot(iteration,xs,ys,zs):
     ax.clear()
     plt.title(repr(iteration))
-    plt.xlim([-80000,80000])
-    plt.ylim([-40000,40000])
-    # plt.zlim([-1000,1000])
-    ax.scatter(xs, ys, c='y', marker='o')
+    plt.xlim([-figsizeX, figsizeX])
+    plt.ylim([-figsizeY, figsizeY])
+    ax.set_zlim(bottom=-figsizeZ, top=figsizeZ, emit=True, auto=False)
+    ax.scatter(xs, ys, zs, c='r', marker='o')
+
     plt.pause(0.001)
 
 
