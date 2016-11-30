@@ -6,50 +6,40 @@ import sys, idlelib.PyShell
 idlelib.PyShell.warning_stream = sys.stderr
 from datetime import datetime
 
-RUN_READER = True
+# RUN_READER = True
+# RECALC_DIST = True
 
 
-#### ALL DISTANCE UNITS ARE IN PARSECS
-#### ALL MASS UNITS ARE IN SOLAR MASSES
+# Simulation Variables and Constants #
+#### ALL DISTANCE UNITS ARE IN PARSECS ####
+#### ALL MASS UNITS ARE IN SOLAR MASSES ####
 
-# G_CONSTANT = 6.67e-11  ##OLD -> Converted to PC^3 / (SM * s^2)
-# starIDCount = 0
-iterations = 400
-particleNum = 50
+
+iterations = 200
+particleNum = 500
 timeStep = 1e5
 currentIteration = 0
-smbh_mass = 1.0e4
+smbh_mass = 1.0e5
 stars = []
 galaxies = []
-filename = "sim_data.txt"
+galaxy_data_file = "galaxy_data.txt"
+sim_data_file = "sim_data.txt"
 G = 4.51722e-30  # PC^3 / (SM * s^2)
+# G_CONSTANT = 6.67e-11  ##OLD -> Converted to PC^3 / (SM * s^2)
 # H = 67.6 * 3.24078e-14
-r_s = 8e15
 
 
-P_crit = 3 * math.pow((67.6 / 3.09e19), 2) / (8 * math.pi * G)  # 3H^2/(8*Pi*G) --> SM/PC^3
-r_200 = 12.5 * r_s
+# NFW Variables
+r_s = 5e15
+r_200 = 20 * r_s
 c = r_200 / r_s  ## MILKY WAY ~10-15 --> Set to 12.5
+
+# NFW Constants
+P_crit = 3 * math.pow((67.6 / 3.09e19), 2) / (8 * math.pi * G)  # 3H^2/(8*Pi*G) --> SM/PC^3
 sig = (200 / 3) * math.pow(c, 3) / (math.log(c) - (c / (1 + c)))
 
 
-def getdist(x, y, z, x1, y1, z1):
-    return math.sqrt(math.pow((x1 - x), 2) + math.pow((y1 - y), 2) + math.pow((z1 - z), 2))
-
-
-# Star position in parsecs
-class Star:
-    velocity = np.array([0., 0., 0.])
-    force = np.array([0., 0., 0.])
-
-    def __init__(self, mass, x, y, z, origin):
-        self.mass = mass
-        self.x = x
-        self.y = y
-        self.z = z
-        self.origin = origin
-
-
+#Prints a progress bar which updates while running a computational loop
 def printProgress(iteration, total, prefix='', suffix='', decimals=1, barLength=100):
     """
     Call in a loop to create terminal progress bar
@@ -72,6 +62,23 @@ def printProgress(iteration, total, prefix='', suffix='', decimals=1, barLength=
     sys.stdout.flush()
 
 
+def getdist(x, y, z, x1, y1, z1):
+    return math.sqrt(math.pow((x1 - x), 2) + math.pow((y1 - y), 2) + math.pow((z1 - z), 2))
+
+
+# Star position in parsecs
+class Star:
+    velocity = np.array([0., 0., 0.])
+    force = np.array([0., 0., 0.])
+
+    def __init__(self, mass, x, y, z, origin):
+        self.mass = mass
+        self.x = x
+        self.y = y
+        self.z = z
+        self.origin = origin
+
+
 class Galaxy:
     vel = np.array([0., 0., 0.])
     stars = []
@@ -84,7 +91,7 @@ class Galaxy:
         self.z = z
         self.numstars = numstars
         self.color = color
-
+        self.setrandommultiplier()
 
     # Sets star velocity perpendicular to the center of the galaxy
     def set_star_velocity(self, star):
@@ -122,7 +129,7 @@ class Galaxy:
         for i in range(1, self.numstars):
             printProgress(i + 1, self.numstars, prefix="Setting Star Distributions:", suffix="Completed", barLength=50)
 
-            dist = self.getstarranddistributionrandomnum(1, self.width)
+            dist = self.getstarranddistributionrandomnum()
             rsqr = dist * dist
             m = random.random() * 2 + 1
             randsign = random.random()
@@ -138,25 +145,30 @@ class Galaxy:
             elif randsign < 0.75:
                 x1 = -x1
 
+            z1 = (self.height * random.random()) - (self.height/2)
+
             # ADD IN Z COORD RANDOMNESS
 
             # Mass in solar masses
             mass = 1 * (0.8 + random.random() * 10)
-            ts = Star(mass, x1, y1, 0, self)
+            ts = Star(mass, x1, y1, z1, self)
             self.set_star_velocity(ts)
             stars.append(ts)
 
         print("\n")
         # May need to add in color code things
 
-    # For star distribution calculations
-    def getstarranddistributionrandomnum(self, startindex, stopindex):
-        randommultiplier = 0.0
-        for i in range(startindex, stopindex):
-            randommultiplier += self.starden(i)
+    # Get the initial random multiplier to use for star distribution
+    def setrandommultiplier(self):
+        self.randommultiplier = 0.0
+        for i in range(1, self.width):
+            self.randommultiplier += self.starden(i)
 
-        n = startindex
-        r = random.random() * randommultiplier
+    # For star distribution calculations
+    def getstarranddistributionrandomnum(self):
+
+        n = 1
+        r = random.random() * self.randommultiplier
         r -= self.starden(n)
 
         while r >= 0:
@@ -203,6 +215,7 @@ def double_galaxy():
     # stars.append(mw.stars)
     # stars.append(mw.stars)
 
+
 ##########################################
 # Define either one galaxy or two galaxies
 single_galaxy()
@@ -214,13 +227,14 @@ timeStepYrs = timeStep / (60 * 60 * 24 * 365.25)
 
 # Opens new data file and writes header (containing number of particles)
 print("Writing sim_data file...\n")
-f = open(filename, 'w')
+f = open(sim_data_file, 'w')
 f.write("HEAD:particles=" + repr(particleNum) + "\n")
 
 
 # Writes the data for a single star at a
 def write(s):
-    w = "iter={0},X={1},Y={2},Z={3},c={4}\n".format(currentIteration, s.x, s.y, s.z, s.origin.color)
+    # w = "iter={0},X={1},Y={2},Z={3},c={4}\n".format(currentIteration, s.x, s.y, s.z, s.origin.color)
+    w = "{0},{1},{2},{3},{4}\n".format(currentIteration, s.x, s.y, s.z, s.origin.color)
     f.write(w)
 
 
@@ -238,24 +252,22 @@ def getgravityvector(s1, s2):
     #print(vg)
     return vg
 
+
 #Returns force between Star s and the center of Galaxy o using NFW Density Profile
-def getdarkmatterforce(s, o):
-    r_crit = 1000
-    d = getdist(o.x, o.y, o.z, s.x, s.y, s.z)
-    if d == 0:
-        return np.array([0., 0., 0.])
-    if d <= r_crit:
-        r = d
-        mdm = 1e1
-    else:
-        r = d - r_crit
-        mdm = abs(P_crit * sig * math.pow(r_s, 3) * (math.log((r_s + r) / r_s) - r / (r_s + r)))
-        #print(mdm)
-    vec = np.array([o.x, o.y, o.z]) - np.array([s.x, s.y, s.z])
+def getdarkmatterforce(s, g):
+    # r_crit = 0
+
+    # Distance between star and galaxy center
+    r = getdist(g.x, g.y, g.z, s.x, s.y, s.z)
+
+    # Integrated dark matter mass within radius r
+    mdm = abs(P_crit * sig * math.pow(r_s, 3) * (math.log((r_s + r) / r_s) - r / (r_s + r)))
+
+    # Create gravity vector for star from dark matter mass pointing at center of galaxy
+    vec = np.array([g.x, g.y, g.z]) - np.array([s.x, s.y, s.z])
     fgdm = G * s.mass / math.pow(r, 2) * mdm
     scale = fgdm / np.linalg.norm(vec)
     vec *= scale
-    # print(np.linalg.norm(vec))
     return vec
 
 # Calculates the position of each particle after force as been applied, and writes the data to the sim_data file
@@ -278,7 +290,7 @@ simStartTime = datetime.now().time()
 updateTime = simStartTime
 
 # Start sim loop
-for n in range(0, iterations):
+for n in range(1, iterations+1):
 
     # Update galactic center positions
     for g in galaxies:
@@ -306,13 +318,9 @@ for n in range(0, iterations):
 
     # Count iterations and print progress bar
     currentIteration += 1
-    printProgress(n + 1, iterations, prefix="Particle Position Calculation Progress:", suffix="Completed.",
+    printProgress(n, iterations, prefix="Particle Position Calculation Progress:", suffix="Completed.",
                   barLength=50)
 
 # Finished
+f.close()
 print("\n\nSimulation calculations have completed! Run the sim_data.txt file in the SimReader to see your results.\n")
-
-if False:
-    with open("Reader.py") as f:
-        code = compile(f.read(), "src/Reader.py", 'exec')
-        exec(code)
