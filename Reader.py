@@ -21,6 +21,8 @@ figsizeY = 10000
 figsizeZ = 10000
 plt.xlim([-figsizeX, figsizeX])
 plt.ylim([-figsizeY, figsizeY])
+ax.set_zlim(bottom=-figsizeZ, top=figsizeZ, emit=True, auto=False)
+
 
 plt.tick_params(axis='both', color='r', labelcolor='r')
 ax.set_xlabel('X Label')
@@ -35,10 +37,8 @@ fig.canvas.mpl_connect('close_event', on_close)
 
 def updateplot(iteration,xs,ys,zs):
     ax.clear()
-    plt.title(repr(iteration))
-    plt.xlim([-figsizeX, figsizeX])
-    plt.ylim([-figsizeY, figsizeY])
-    ax.set_zlim(bottom=-figsizeZ, top=figsizeZ, emit=True, auto=False)
+    ax.autoscale(enable=False)
+    ax.text2D(0.05, 0.95, "Iteration: " + repr(iteration), transform=ax.transAxes, color='red')
     ax.scatter(xs, ys, zs, c='r', marker='o')
 
     plt.pause(0.001)
