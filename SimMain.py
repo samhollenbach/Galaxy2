@@ -5,6 +5,7 @@ import sys, idlelib.PyShell
 #import Reader
 idlelib.PyShell.warning_stream = sys.stderr
 from datetime import datetime
+import time
 
 # RUN_READER = True
 # RECALC_DIST = True
@@ -286,7 +287,7 @@ def calculatemovesfromforce(t):
 
 #######START SIMULATION RUN#########
 
-simStartTime = datetime.now().time()
+simStartTime = time.clock()
 updateTime = simStartTime
 currentIteration = 0
 
@@ -305,7 +306,9 @@ for n in range(1, iterations+1):
             if j == i:
                 continue
 
-            # Find gravity vector calculations between each star and sum to a net force for each star
+            # Find gravity vector calculations between each star and sum to a net force for each star'
+
+            # CHECK DISTANCE BETWEEN S and STARS[j] : IF GREATER THAN CERTAIN THRESHOLD THEN SKIP THIS CALCULATION TO IMPROVE PERFORMANCE
             g = getgravityvector(s, stars[j])
             force += g
 
@@ -324,4 +327,8 @@ for n in range(1, iterations+1):
 
 # Finished
 f.close()
-print("\n\nSimulation calculations have completed! Run the sim_data.txt file in the SimReader to see your results.\n")
+simEndTime = time.clock()
+totalTime = simEndTime - simStartTime
+print(
+    "\n\nSimulation calculations completed in %s seconds! Run the sim_data.txt file in the SimReader to see your results.\n" % round(
+        totalTime, 2))
