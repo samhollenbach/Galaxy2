@@ -2,10 +2,9 @@ import numpy as np
 import math
 import random
 import sys, idlelib.PyShell
-#import Reader
 idlelib.PyShell.warning_stream = sys.stderr
-from datetime import datetime
 import time
+from joblib import Parallel, delayed
 
 # RUN_READER = True
 # RECALC_DIST = True
@@ -16,10 +15,10 @@ import time
 #### ALL MASS UNITS ARE IN SOLAR MASSES ####
 
 # Sim Vairables
-iterations = 300
-particleNum = 250
+iterations = 150
+particleNum = 200
 timeStep = 1e14  # Seconds
-galaxy_data_file = "galaxy_data.txt"
+# galaxy_data_file = "galaxy_data.txt"
 sim_data_file = "sim_data.txt"
 
 # Galaxy Variables
@@ -34,7 +33,7 @@ G = 4.51722e-30  # G constant converted to units: PC^3 / (SM * s^2)
 
 
 # NFW Variables
-r_s = 0.87e5
+r_s = 0.82e5
 r_200 = 10 * r_s
 c = r_200 / r_s  ## MILKY WAY ~10-15 --> Set to 12.5
 
@@ -100,7 +99,7 @@ class Galaxy:
     def setstardistribution(self):
         smbh = Star(smbh_mass, 0., 0., 0., self)
         stars.append(smbh)
-        for i in range(1, self.numstars):
+        for i in range(0, self.numstars):
             printProgress(i + 1, self.numstars, prefix="Setting Star Distributions:", suffix="Completed", barLength=50)
 
             #Determines random x and y position for star
@@ -271,6 +270,40 @@ def getdarkmatterforce(s, g):
     vec *= scale
     return vec
 
+
+
+
+
+
+#######START SIMULATION RUN#########
+
+
+
+def processStars(starsTemp):
+    for i in range(0, len(starsTemp) - 1):
+        s = starsTemp[i]
+        force = np.array([0., 0., 0.])
+
+        for j in range(0, len(starsTemp) - 1):
+            if j == i:
+                continue
+
+            # Find gravity vector calculations between each star and sum to a net force for each star'
+
+            # CHECK DISTANCE BETWEEN S and STARS[j] : IF GREATER THAN CERTAIN THRESHOLD THEN SKIP THIS CALCULATION TO IMPROVE PERFORMANCE
+            g = getgravityvector(s, starsTemp[j])
+            force += g
+
+        if s.mass != smbh_mass:
+            dm = getdarkmatterforce(s, s.origin)
+            force += dm
+        s.force = force
+    return starsTemp
+
+
+n_jobs = 4
+
+
 # Calculates the position of each particle after force as been applied, and writes the data to the sim_data file
 def calculatemovesfromforce(t):
     for s in stars:
@@ -279,55 +312,39 @@ def calculatemovesfromforce(t):
         s.x += s.velocity[0] * t
         s.y += s.velocity[1] * t
         s.z += s.velocity[2] * t
-
         write(s)
 
 
-
-
-#######START SIMULATION RUN#########
-
-simStartTime = time.clock()
+simStartTime = time.perf_counter()
 updateTime = simStartTime
 currentIteration = 0
 
 # Start sim loop
-for n in range(1, iterations+1):
+with Parallel(n_jobs=n_jobs) as parallelizer:
+    for n in range(1, iterations + 1):
 
-    # Update galactic center positions
-    for g in galaxies:
-        g.update(timeStep)
+        # Update galactic center positions
+        for g in galaxies:
+            g.update(timeStep)
 
-    for i in range(0, len(stars) - 1):
-        s = stars[i]
-        force = np.array([0., 0., 0.])
+        stars1 = np.array(stars)
+        # this iterator returns the functions to execute for each task
+        tasks_iterator = (delayed(processStars)(starsTemp)
+                          for starsTemp in np.split(stars1, n_jobs))
+        result = parallelizer(tasks_iterator)
+        stars = np.concatenate(result)
 
-        for j in range(0, len(stars) - 1):
-            if j == i:
-                continue
+        # Calculate all particle moves and write them
+        calculatemovesfromforce(timeStep)
 
-            # Find gravity vector calculations between each star and sum to a net force for each star'
-
-            # CHECK DISTANCE BETWEEN S and STARS[j] : IF GREATER THAN CERTAIN THRESHOLD THEN SKIP THIS CALCULATION TO IMPROVE PERFORMANCE
-            g = getgravityvector(s, stars[j])
-            force += g
-
-        if s.mass != smbh_mass:
-            dm = getdarkmatterforce(s, s.origin)
-            force += dm
-        s.force = force
-
-    # Calculate all particle moves and write them
-    calculatemovesfromforce(timeStep)
-
-    # Count iterations and print progress bar
-    currentIteration += 1
-    printProgress(n, iterations, prefix="Particle Position Calculation Progress:", suffix="Completed.",
-                  barLength=50)
+        # Count iterations and print progress bar
+        currentIteration += 1
+        printProgress(n, iterations, prefix="Particle Position Calculation Progress:", suffix="Completed.",
+                      barLength=50)
 
 # Finished
 f.close()
-simEndTime = time.clock()
+simEndTime = time.perf_counter()
 totalTime = simEndTime - simStartTime
 print(
     "\n\nSimulation calculations completed in %s seconds! Run the sim_data.txt file in the SimReader to see your results.\n" % round(
