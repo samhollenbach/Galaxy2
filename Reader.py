@@ -23,7 +23,7 @@ plt.xlim([-figsizeX, figsizeX])
 plt.ylim([-figsizeY, figsizeY])
 ax.set_zlim(bottom=-figsizeZ, top=figsizeZ, emit=True, auto=False)
 
-
+particle_num = 0
 plt.tick_params(axis='both', color='r', labelcolor='r')
 
 def on_close(event):
@@ -44,7 +44,8 @@ def updateplot(iteration,xs,ys,zs):
     ax.set_zlabel('(pc)')
 
     ax.text2D(0.05, 0.95, "Iteration: " + repr(iteration), transform=ax.transAxes, color='red')
-    ax.scatter(xs, ys, zs, c='r', marker='o', s=9)
+    ax.text2D(0.05, 0.90, "Particles: " + repr(particle_num), transform=ax.transAxes, color='red')
+    ax.scatter(xs, ys, zs, c='r', marker='o', s=5)
     plt.pause(0.001)
 
 
@@ -66,11 +67,11 @@ def read_sim():
                 continue
 
             data = line.split(',')
-
             i = data[0]
             if i != iter:
                 iter = i
                 updateplot(iter, xs, ys, zs)
+
                 xs = []
                 ys = []
                 zs = []
