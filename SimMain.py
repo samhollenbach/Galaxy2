@@ -274,7 +274,7 @@ def calculatemovesfromforce(t):
 # Sim Vairables
 iterations = 200
 particleNum = 1000
-timeStep = 1e14  # Seconds
+timeStep = 0.4e14  # Seconds
 # galaxy_data_file = "galaxy_data.txt"
 sim_data_file = "sim_data.txt"
 
@@ -288,9 +288,9 @@ stars = []
 galaxies = []
 G = 4.51722e-30  # G constant converted to units: PC^3 / (SM * s^2)
 
-# NFW Variables
-r_s = 0.83e5
-r_200 = 8 * r_s
+# NFW Variablesyh++
+r_s = 0.6e5
+r_200 = 9 * r_s #Higher pulls outside stronger, inside weaker
 c = r_200 / r_s  ## MILKY WAY ~10-15 --> Set to 12.5
 
 # NFW Constants
@@ -341,8 +341,11 @@ if __name__ == '__main__':
 
             # Count iterations and print progress bar
             currentIteration += 1
-            printProgress(n, iterations, prefix="Particle Position Calculation Progress:", suffix="Completed.",
+            updateTime = time.perf_counter()-simStartTime
+            time_est = (iterations-currentIteration)*updateTime/currentIteration
+            printProgress(n, iterations, prefix="Particle Position Calculation Progress:", suffix="Completed. (Approx. %s seconds remaining)" % repr(int(time_est)),
                           barLength=50)
+
 
     # Finished
     f.close()
