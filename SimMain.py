@@ -289,8 +289,8 @@ galaxies = []
 G = 4.51722e-30  # G constant converted to units: PC^3 / (SM * s^2)
 
 # NFW Variablesyh++
-r_s = 0.6e5
-r_200 = 9 * r_s #Higher pulls outside stronger, inside weaker
+r_s = 0.8e5
+r_200 = 5 * r_s #Higher pulls outside stronger, inside weaker
 c = r_200 / r_s  ## MILKY WAY ~10-15 --> Set to 12.5
 
 # NFW Constants
@@ -343,7 +343,7 @@ if __name__ == '__main__':
             currentIteration += 1
             updateTime = time.perf_counter()-simStartTime
             time_est = (iterations-currentIteration)*updateTime/currentIteration
-            printProgress(n, iterations, prefix="Particle Position Calculation Progress:", suffix="Completed. (Approx. %s seconds remaining)" % repr(int(time_est)),
+            printProgress(n, iterations, prefix="Particle Position Calculation Progress:", suffix="Completed. (%s/%s iterations completed, Approx. %s seconds remaining)" % (currentIteration, iterations , repr(int(time_est))),
                           barLength=50)
 
 
