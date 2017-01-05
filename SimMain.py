@@ -68,14 +68,10 @@ class Galaxy:
 
             #Determines random x and y position for star
             dist = self.getstarranddistributionrandomnum()
-
             angle = random.random()*2*math.pi
             x1 = dist*math.cos(angle)
             y1 = dist*math.sin(angle)
 
-            #sign = [1, -1]
-            #x1 *= random.choice(sign)
-            #y1 *= random.choice(sign)
 
             # Determines z position for star
             if dist < galaxy_bulge_width:
@@ -126,7 +122,7 @@ class Galaxy:
 
         # Initial velocity in pc/s
         # velo = 7.129e-12  #220 km/s in pc/s
-        velo = 7.129e-12
+        velo = main_velo
 
         # Center of galaxy
         r1 = 1000
@@ -204,7 +200,6 @@ def getgravityvector(s1, s2):
 
 #Returns force between Star s and the center of Galaxy o using NFW Density Profile
 def getdarkmatterforce(s, g):
-    # r_crit = 0
 
     # Distance between star and galaxy center
     r = getdist(g.x, g.y, g.z, s.x, s.y, s.z)
@@ -218,13 +213,6 @@ def getdarkmatterforce(s, g):
     scale = fgdm / np.linalg.norm(vec)
     vec *= scale
     return vec
-
-
-
-
-
-
-#######START SIMULATION RUN#########
 
 
 
@@ -273,84 +261,125 @@ def calculatemovesfromforce(t):
 
 # Sim Vairables
 iterations = 200
-particleNum = 1000
+particleNum = 200
 timeStep = 0.4e14  # Seconds
 # galaxy_data_file = "galaxy_data.txt"
 sim_data_file = "sim_data.txt"
 
 # Galaxy Variables
-smbh_mass = 4.2e6  ###Roughly Sgittarius A* mass in solar masses###
+smbh_mass = 4.2e6  ###Roughly Sagittarius A* mass in solar masses###
 galaxy_width = 35000
 galaxy_height = 300
 galaxy_bulge_width = 1000
 galaxy_bulge_height = 1000
+main_velo = 7.129e-12
 stars = []
 galaxies = []
 G = 4.51722e-30  # G constant converted to units: PC^3 / (SM * s^2)
 
-# NFW Variablesyh++
-r_s = 0.8e5
-r_200 = 5 * r_s #Higher pulls outside stronger, inside weaker
+# NFW Variablesy
+r_s = 0.045e5
+r_200 = 55 * r_s  # Higher pulls outside stronger, inside weaker
 c = r_200 / r_s  ## MILKY WAY ~10-15 --> Set to 12.5
 
 # NFW Constants
 P_crit = 3 * math.pow((67.6 / 3.09e19), 2) / (8 * math.pi * G)  # 3H^2/(8*Pi*G) --> SM/PC^3
 sig = (200 / 3) * math.pow(c, 3) / (math.log(c) - (c / (1 + c)))
 
+# 0 - Simulation, 1 - DM Analysis, 2 - Analysis and Simulation
+mode = 2
 
+#######START SIMULATION RUN#########
 if __name__ == '__main__':
 
-    ##########################################
-    # Define either one galaxy or two galaxies
-    single_galaxy()
-    ##########################################
-
-    # Calculate the timestep in year for display on sim reader
-    timeStepYrs = timeStep / (60 * 60 * 24 * 365.25)
-
-
-    # Opens new data file and writes header (containing number of particles)
-    print("Writing sim_data file...\n")
-    f = open(sim_data_file, 'w')
-    f.write("HEAD:particles=" + repr(particleNum) + "\n")
+    if mode == 1 or mode == 2:
+        print("Running Dark Matter Analysis with r_scale value of %s and concentration value of %s \n" % (r_s, c))
+        test_star_num = 10
+        test_galaxy = Galaxy(galaxy_width, galaxy_height, 0, 0, 0, test_star_num, 0)
+        for i in range(1, (test_star_num)):
+            test_x = (i / test_star_num) * galaxy_width / 2
+            test_galaxy.stars.append(Star(1, test_x, 0, 0, test_galaxy))
 
 
-    simStartTime = time.perf_counter()
-    updateTime = simStartTime
-    currentIteration = 0
-
-    n_jobs = 4
-
-    # Start sim loop
-    with Parallel(n_jobs=n_jobs) as parallelizer:
-        for n in range(1, iterations + 1):
-
-            # Update galactic center positions
-            for g in galaxies:
-                g.update(timeStep)
-
-            stars1 = np.array(stars)
-            # this iterator returns the functions to execute for each task
-            tasks_iterator = (delayed(processStars)(starsTemp)
-                              for starsTemp in np.split(stars1, n_jobs))
-            result = parallelizer(tasks_iterator)
-            stars = np.concatenate(result)
-
-            # Calculate all particle moves and write them
-            calculatemovesfromforce(timeStep)
-
-            # Count iterations and print progress bar
-            currentIteration += 1
-            updateTime = time.perf_counter()-simStartTime
-            time_est = (iterations-currentIteration)*updateTime/currentIteration
-            printProgress(n, iterations, prefix="Particle Position Calculation Progress:", suffix="Completed. (%s/%s iterations completed, Approx. %s seconds remaining)" % (currentIteration, iterations , repr(int(time_est))),
-                          barLength=50)
+        def expected_force(s):
+            rad = s.x
+            return s.mass * math.pow(main_velo, 2) / rad
 
 
-    # Finished
-    f.close()
-    simEndTime = time.perf_counter()
-    totalTime = simEndTime - simStartTime
-    print(
-        "\n\nSimulation calculations completed in %s seconds! Run the sim_data.txt file in the SimReader to see your results.\n" % round(
-            totalTime, 2))
+        def get_error(exf, dmf):
+            return -(exf - dmf) / exf
+
+
+        errors = []
+        test_smbh = Star(smbh_mass, 0, 0, 0, test_galaxy)
+
+        for s in test_galaxy.stars:
+            print("Star at radius %s" % s.x)
+            exf = math.fabs(expected_force(s))
+            dmf = math.fabs(getdarkmatterforce(s, test_galaxy)[0] + getgravityvector(s, test_smbh)[0])
+            print("Expected: %s" % exf)
+            print("Actual: %s" % dmf)
+            err = get_error(exf, dmf)
+            errors.append(err)
+            print("Error: %s" % err)
+            print("\n")
+
+        print("All error values:")
+        print(errors)
+        print("\n")
+
+    if mode == 0 or mode == 2:
+
+        ##########################################
+        # Define either one galaxy or two galaxies
+        single_galaxy()
+        ##########################################
+
+        # Calculate the timestep in year for display on sim reader
+        timeStepYrs = timeStep / (60 * 60 * 24 * 365.25)
+
+        # Opens new data file and writes header (containing number of particles)
+        print("Writing sim_data file...\n")
+        f = open(sim_data_file, 'w')
+        f.write("HEAD:particles=" + repr(particleNum) + "\n")
+
+        simStartTime = time.perf_counter()
+        updateTime = simStartTime
+        currentIteration = 0
+
+        n_jobs = 4
+
+        # Start sim loop
+        with Parallel(n_jobs=n_jobs) as parallelizer:
+            for n in range(1, iterations + 1):
+
+                # Update galactic center positions
+                for g in galaxies:
+                    g.update(timeStep)
+
+                stars1 = np.array(stars)
+                # this iterator returns the functions to execute for each task
+                tasks_iterator = (delayed(processStars)(starsTemp)
+                                  for starsTemp in np.split(stars1, n_jobs))
+                result = parallelizer(tasks_iterator)
+                stars = np.concatenate(result)
+
+                # Calculate all particle moves and write them
+                calculatemovesfromforce(timeStep)
+
+                # Count iterations and print progress bar
+                currentIteration += 1
+                updateTime = time.perf_counter() - simStartTime
+                time_est = (iterations - currentIteration) * updateTime / currentIteration
+                printProgress(n, iterations, prefix="Particle Position Calculation Progress:",
+                              suffix="Completed. (%s/%s iterations completed, Approx. %s seconds remaining)" % (
+                              currentIteration, iterations, repr(int(time_est))),
+                              barLength=50)
+
+        # Finished
+        f.close()
+        simEndTime = time.perf_counter()
+        totalTime = simEndTime - simStartTime
+        print(
+            "\n\nSimulation calculations completed in %s seconds! Run the sim_data.txt file in the SimReader to see your results.\n" % round(
+                totalTime, 2))
