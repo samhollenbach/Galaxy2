@@ -3,7 +3,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
 # DOES NOT CLOSE PROPERLY WHEN TRUE, TRY TO FIX THAT
-REPEAT = False
+REPEAT = True
 
 
 def randrange(n, vmin, vmax):

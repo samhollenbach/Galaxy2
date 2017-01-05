@@ -149,19 +149,16 @@ class Galaxy:
 
 # Initiaizes a single stationary galaxy centered at the origin
 def single_galaxy():
-    print("Creating a single Galaxy for you...\n")
-    stars = []
+    print("Creating a single Galaxy for you with %s stars...\n" % particleNum)
     mw = Galaxy(galaxy_width, galaxy_height, 0, 0, 0, particleNum - 1, 1)
     mw.velocity = np.array([0, 0, 0])
     mw.setstardistribution()
     galaxies.append(mw)
-    # stars.append(mw.stars)
 
 
 # Initializes two galaxies heading towards each other
 def double_galaxy():
-    print("Creating two Galaxies for you...\n")
-    stars = []
+    print("Creating two Galaxies for you with %s stars each...\n" % (particleNum / 2))
     mw = Galaxy(galaxy_width, galaxy_height, -80000, -60000, 0, particleNum / 2 - 1, 1)
     an = Galaxy(galaxy_width, galaxy_height, 80000, 60000, 0, particleNum / 2 - 1, 2)
     mw.velocity = np.array([10, 1, 0])
@@ -170,8 +167,6 @@ def double_galaxy():
     an.setstardistribution()
     galaxies.append(mw)
     galaxies.append(an)
-    # stars.append(mw.stars)
-    # stars.append(mw.stars)
 
 
 # Writes the data for a single star at a
@@ -259,7 +254,7 @@ def calculatemovesfromforce(t):
 
 # Sim Vairables
 iterations = 200
-particleNum = 200
+particleNum = 400
 timeStep = 0.4e14  # Seconds
 # galaxy_data_file = "galaxy_data.txt"
 sim_data_file = "sim_data.txt"
@@ -276,7 +271,7 @@ galaxies = []
 G = 4.51722e-30  # G constant converted to units: PC^3 / (SM * s^2)
 
 # NFW Variablesy
-r_s = 0.045e5
+r_s = 0.031e5
 r_200 = 55 * r_s  # Higher pulls outside stronger, inside weaker
 c = r_200 / r_s  ## MILKY WAY ~10-15 --> Set to 12.5
 
