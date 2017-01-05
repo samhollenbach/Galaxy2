@@ -132,13 +132,11 @@ class Galaxy:
         # Set direction of velocity
         theta = math.atan(yt / xt)
         if xt < 0:
-            r *= -1
-        tempX = -(r * math.cos(theta - 0.00001) - r * math.cos(theta))
-        tempY = -tempX * xt / yt
+            velo *= -1
+        vx = -velo * math.sin(theta)
+        vy = velo * math.cos(theta)
 
-        v = np.array([tempX, tempY, 0])
-        speedscale = (velo / np.linalg.norm(v))
-        v *= speedscale
+        v = np.array([vx, vy, 0])
         v += self.vel
         star.velocity = v
 
@@ -296,14 +294,16 @@ if __name__ == '__main__':
         print("Running Dark Matter Analysis with r_scale value of %s and concentration value of %s \n" % (r_s, c))
         test_star_num = 10
         test_galaxy = Galaxy(galaxy_width, galaxy_height, 0, 0, 0, test_star_num, 0)
+
+        # Created test_star_num stars at even intervals out from center of galaxy on x axis
         for i in range(1, (test_star_num)):
             test_x = (i / test_star_num) * galaxy_width / 2
             test_galaxy.stars.append(Star(1, test_x, 0, 0, test_galaxy))
 
 
+        #Calculates expected force for an orbit with main_velo
         def expected_force(s):
-            rad = s.x
-            return s.mass * math.pow(main_velo, 2) / rad
+            return s.mass * math.pow(main_velo, 2) / s.x
 
 
         def get_error(exf, dmf):
