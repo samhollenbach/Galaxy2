@@ -4,6 +4,8 @@ import random
 import sys
 import time
 from joblib import Parallel, delayed
+from SimComponents import Star
+from SimComponents import Galaxy
 
 
 #Prints a progress bar which updates while running a computational loop
@@ -33,124 +35,12 @@ def getdist(x, y, z, x1, y1, z1):
     return math.sqrt(math.pow((x1 - x), 2) + math.pow((y1 - y), 2) + math.pow((z1 - z), 2))
 
 
-# Star position in parsecs
-class Star:
-    velocity = np.array([0., 0., 0.])
-    force = np.array([0., 0., 0.])
-
-    def __init__(self, mass, x, y, z, origin):
-        self.mass = mass
-        self.x = x
-        self.y = y
-        self.z = z
-        self.origin = origin
-
-
-class Galaxy:
-    vel = np.array([0., 0., 0.])
-    stars = []
-
-    def __init__(self, width, height, x, y, z, numstars, color):
-        self.width = width
-        self.height = height
-        self.x = x
-        self.y = y
-        self.z = z
-        self.numstars = numstars
-        self.color = color
-        self.setrandommultiplier()
-
-    def setstardistribution(self):
-        smbh = Star(smbh_mass, 0., 0., 0., self)
-        stars.append(smbh)
-        for i in range(0, self.numstars):
-            printProgress(i + 1, self.numstars, prefix="Setting Star Distributions:", suffix="Completed", barLength=50)
-
-            #Determines random x and y position for star
-            dist = self.getstarranddistributionrandomnum()
-            angle = random.random()*2*math.pi
-            x1 = dist*math.cos(angle)
-            y1 = dist*math.sin(angle)
-
-
-            # Determines z position for star
-            if dist < galaxy_bulge_width:
-                z1 = (galaxy_bulge_height * random.random()) - (galaxy_bulge_height / 2)
-            else:
-                z1 = (self.height * random.random()) - (self.height/2)
-
-
-            # Mass in solar masses
-            mass = 1 * (0.8 + random.random() * 10)
-            ts = Star(mass, x1, y1, z1, self)
-            self.set_star_velocity(ts)
-            stars.append(ts)
-
-        print("\n")
-        # May need to add in color code things
-
-    # Get the initial random multiplier to use for star distribution
-    def setrandommultiplier(self):
-        self.randommultiplier = 0.0
-        for i in range(1, self.width):
-            self.randommultiplier += self.starden(i)
-
-    # For star distribution calculations
-    def getstarranddistributionrandomnum(self):
-        n = 1
-        r = random.random() * self.randommultiplier
-        r -= self.starden(n)
-
-        while r >= 0:
-            n += 1
-            r -= self.starden(n)
-
-        return n
-
-    # Used to determine density of stars in galaxy by radius
-    @staticmethod
-    def starden(r):
-        return np.exp(-r / 3000)
-
-    # Sets star velocity perpendicular to the center of the galaxy
-    def set_star_velocity(self, star):
-        xt = self.x - star.x
-        yt = self.y - star.y
-
-        a = np.array([xt, yt, 0])
-        r = np.linalg.norm(a)
-
-        # Initial velocity in pc/s
-        # velo = 7.129e-12  #220 km/s in pc/s
-        velo = main_velo
-
-        # Center of galaxy
-        r1 = 1000
-        if r < r1:
-            velo *= (0.5 + (0.5 * r) / r1)
-
-        # Set direction of velocity
-        theta = math.atan(yt / xt)
-        if xt < 0:
-            velo *= -1
-        vx = -velo * math.sin(theta)
-        vy = velo * math.cos(theta)
-
-        v = np.array([vx, vy, 0])
-        v += self.vel
-        star.velocity = v
-
-    # Updates the position of the galactic center
-    def update(self, t):
-        self.x = self.vel[0] * t
-        self.y = self.vel[1] * t
-        self.z = self.vel[2] * t
 
 
 # Initiaizes a single stationary galaxy centered at the origin
 def single_galaxy():
     print("Creating a single Galaxy for you with %s stars...\n" % particleNum)
-    mw = Galaxy(galaxy_width, galaxy_height, 0, 0, 0, particleNum - 1, 1)
+    mw = Galaxy(galaxy_width, galaxy_height, 0, 0, 0, particleNum, 1)
     mw.velocity = np.array([0, 0, 0])
     mw.setstardistribution()
     galaxies.append(mw)
@@ -159,8 +49,8 @@ def single_galaxy():
 # Initializes two galaxies heading towards each other
 def double_galaxy():
     print("Creating two Galaxies for you with %s stars each...\n" % (particleNum / 2))
-    mw = Galaxy(galaxy_width, galaxy_height, -80000, -60000, 0, particleNum / 2 - 1, 1)
-    an = Galaxy(galaxy_width, galaxy_height, 80000, 60000, 0, particleNum / 2 - 1, 2)
+    mw = Galaxy(galaxy_width, galaxy_height, -80000, -60000, 0, particleNum / 2, 1)
+    an = Galaxy(galaxy_width, galaxy_height, 80000, 60000, 0, particleNum / 2, 2)
     mw.velocity = np.array([10, 1, 0])
     an.velocity = np.array([-10, -1, 0])
     mw.setstardistribution()
@@ -187,7 +77,6 @@ def getgravityvector(s1, s2):
     vg = np.array([dx, dy, dz])
     scalar = -fg / np.linalg.norm(vg)
     vg *= scalar
-    #print(vg)
     return vg
 
 
@@ -207,8 +96,6 @@ def getdarkmatterforce(s, g):
     vec *= scale
     return vec
 
-
-
 def processStars(starsTemp):
     for i in range(0, len(starsTemp) - 1):
         s = starsTemp[i]
@@ -224,15 +111,11 @@ def processStars(starsTemp):
             g = getgravityvector(s, starsTemp[j])
             force += g
 
-        if s.mass != smbh_mass:
+        if s.mass != s.origin.smbh_mass:
             dm = getdarkmatterforce(s, s.origin)
             force += dm
         s.force = force
     return starsTemp
-
-
-
-
 
 # Calculates the position of each particle after force as been applied, and writes the data to the sim_data file
 def calculatemovesfromforce(t):
@@ -247,25 +130,21 @@ def calculatemovesfromforce(t):
 # RUN_READER = True
 # RECALC_DIST = True
 
-
 # Simulation Variables and Constants #
 #### ALL DISTANCE UNITS ARE IN PARSECS ####
 #### ALL MASS UNITS ARE IN SOLAR MASSES ####
 
 # Sim Vairables
 iterations = 200
-particleNum = 400
+particleNum = 100
 timeStep = 0.4e14  # Seconds
 # galaxy_data_file = "galaxy_data.txt"
 sim_data_file = "sim_data.txt"
 
 # Galaxy Variables
-smbh_mass = 4.2e6  ###Roughly Sagittarius A* mass in solar masses###
+
 galaxy_width = 35000
 galaxy_height = 300
-galaxy_bulge_width = 1000
-galaxy_bulge_height = 1000
-main_velo = 7.129e-12
 stars = []
 galaxies = []
 G = 4.51722e-30  # G constant converted to units: PC^3 / (SM * s^2)
@@ -280,7 +159,7 @@ P_crit = 3 * math.pow((67.6 / 3.09e19), 2) / (8 * math.pi * G)  # 3H^2/(8*Pi*G) 
 sig = (200 / 3) * math.pow(c, 3) / (math.log(c) - (c / (1 + c)))
 
 # 0 - Simulation, 1 - DM Analysis, 2 - Analysis and Simulation
-mode = 2
+mode = 0
 
 #######START SIMULATION RUN#########
 if __name__ == '__main__':
@@ -293,12 +172,12 @@ if __name__ == '__main__':
         # Created test_star_num stars at even intervals out from center of galaxy on x axis
         for i in range(1, (test_star_num)):
             test_x = (i / test_star_num) * galaxy_width / 2
-            test_galaxy.stars.append(Star(1, test_x, 0, 0, test_galaxy))
+            test_galaxy.galaxy_stars.append(Star(1, test_x, 0, 0, test_galaxy))
 
 
         #Calculates expected force for an orbit with main_velo
         def expected_force(s):
-            return s.mass * math.pow(main_velo, 2) / s.x
+            return s.mass * np.square(s.origin.main_velo) / s.x
 
 
         def get_error(exf, dmf):
@@ -306,9 +185,9 @@ if __name__ == '__main__':
 
 
         errors = []
-        test_smbh = Star(smbh_mass, 0, 0, 0, test_galaxy)
+        test_smbh = Star(test_galaxy.smbh_mass, 0, 0, 0, test_galaxy)
 
-        for s in test_galaxy.stars:
+        for s in test_galaxy.galaxy_stars:
             print("Star at radius %s" % s.x)
             exf = math.fabs(expected_force(s))
             dmf = math.fabs(getdarkmatterforce(s, test_galaxy)[0] + getgravityvector(s, test_smbh)[0])
@@ -332,9 +211,10 @@ if __name__ == '__main__':
 
         # Calculate the timestep in year for display on sim reader
         timeStepYrs = timeStep / (60 * 60 * 24 * 365.25)
+        stars = [temp_star for g in galaxies for temp_star in g.galaxy_stars]
 
         # Opens new data file and writes header (containing number of particles)
-        print("Writing sim_data file...\n")
+        print("Opening sim_data file...\n")
         f = open(sim_data_file, 'w')
         f.write("HEAD:particles=" + repr(particleNum) + "\n")
 

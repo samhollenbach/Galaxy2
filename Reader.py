@@ -2,9 +2,7 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
-# DOES NOT CLOSE PROPERLY WHEN TRUE, TRY TO FIX THAT
 REPEAT = True
-
 
 def randrange(n, vmin, vmax):
     return (vmax - vmin)*np.random.rand(n) + vmin
@@ -85,7 +83,7 @@ def read_sim():
 
 
 read_sim()
-while REPEAT:
+while REPEAT and plt.fignum_exists(111):
     read_sim()
 
 plt.close()
