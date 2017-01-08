@@ -10,10 +10,16 @@ Galaxy can be run with either one or two galaxies at the moment, but infinitely 
 Galaxy_v2 has been drasticly improved in simulation accuracy, code effciency, and visualization.
 
 Notable features of v2:
+
 -NFW Dark Matter Profile (learn more here: https://en.wikipedia.org/wiki/Navarro%E2%80%93Frenk%E2%80%93White_profile)
+
 -Dark Matter analysis mode, to quickly determine how accurate the NFW profile is with specified constants
+
 -3D visualization using the Python library matplotlib (Reader.py)
+
 -Parallel processing ability using the Python library joblib
+
 -All around improved code speed and readability
+
 
 Contact me at shollenb@macalester.edu if you have any quesitons
