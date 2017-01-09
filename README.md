@@ -1,4 +1,5 @@
-## Galaxy_v2
+## Galaxy2
+# (version 2.1)
 
 [![license](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)]
 (https://github.com/samhollenbach/Galaxy_v2.1/LICENSE)
@@ -11,7 +12,7 @@ The simulation began as a open ended project for my Modern Astronomy course duri
 Galaxy_v1 can be found at [here](https://github.com/samhollenbach/Galaxy)
 
 
-Galaxy_v2 has been drasticly improved in simulation accuracy, code effciency, and visualization.
+Galaxy2 has been drasticly improved in simulation accuracy, code effciency, and visualization.
 
 
 Notable features of v2.1:
