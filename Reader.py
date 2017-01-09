@@ -8,8 +8,6 @@ def randrange(n, vmin, vmax):
     return (vmax - vmin)*np.random.rand(n) + vmin
 
 fig = plt.figure()
-#plt.ion()
-#ax = fig.add_subplot(111, projection='3d')
 ax = fig.add_subplot(111, projection='3d')
 ax.has_been_closed = False
 ax.set_axis_bgcolor('black')
@@ -34,7 +32,8 @@ ax.zaxis.label.set_color('red')
 
 fig.canvas.mpl_connect('close_event', on_close)
 
-def updateplot(iteration,xs,ys,zs):
+
+def updateplot(iteration, xs, ys, zs, galaxy_num, particle_num):
     ax.clear()
     ax.autoscale(enable=False)
     ax.set_xlabel('(pc)')
@@ -42,7 +41,8 @@ def updateplot(iteration,xs,ys,zs):
     ax.set_zlabel('(pc)')
 
     ax.text2D(0.05, 0.95, "Iteration: " + repr(iteration), transform=ax.transAxes, color='red')
-    ax.text2D(0.05, 0.90, "Particles: " + repr(particle_num), transform=ax.transAxes, color='red')
+    ax.text2D(0.05, 0.90, "Galaxies: " + repr(galaxy_num), transform=ax.transAxes, color='red')
+    ax.text2D(0.05, 0.85, "Particles: " + repr(particle_num), transform=ax.transAxes, color='red')
     ax.scatter(xs, ys, zs, c='r', marker='o', s=5)
     plt.pause(0.001)
 
@@ -61,14 +61,16 @@ def read_sim():
                 break
 
             if line.startswith("HEAD:"):
-                particle_num = int(line[15:])
+                head_data = line[5:].rstrip().split(',')
+                galaxies = int(head_data[0])
+                particles = int(head_data[1])
                 continue
 
             data = line.split(',')
             i = data[0]
             if i != iter:
                 iter = i
-                updateplot(iter, xs, ys, zs)
+                updateplot(iter, xs, ys, zs, galaxies, particles)
 
                 xs = []
                 ys = []
@@ -83,7 +85,7 @@ def read_sim():
 
 
 read_sim()
-while REPEAT and plt.fignum_exists(111):
+while REPEAT and plt.fignum_exists(fig.number):
     read_sim()
 
 plt.close()
