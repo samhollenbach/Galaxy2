@@ -1,4 +1,7 @@
-# Galaxy_v2
+## Galaxy_v2
+
+[![license](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)]
+[![Release Version](https://img.shields.io/badge/release-2.1-red.svg)](https://github.com/Tencent/mars/releases)
 
 This is a project created by Sam Hollenbach as an independent research project at Macalester College.
 
