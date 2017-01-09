@@ -1,5 +1,5 @@
-## Galaxy2
-# (version 2.1)
+# Galaxy2
+## (version 2.1)
 
 [![license](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)]
 (https://github.com/samhollenbach/Galaxy_v2.1/LICENSE)
