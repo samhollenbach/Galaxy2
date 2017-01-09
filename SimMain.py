@@ -1,12 +1,9 @@
 import numpy as np
 import math
-import random
 import sys
 import time
 from joblib import Parallel, delayed
-from SimComponents import Star
-from SimComponents import Galaxy
-
+from SimComponents import Star, Galaxy
 
 #Prints a progress bar which updates while running a computational loop
 def printProgress(iteration, total, prefix='', suffix='', decimals=1, barLength=100):
@@ -31,40 +28,16 @@ def printProgress(iteration, total, prefix='', suffix='', decimals=1, barLength=
     sys.stdout.flush()
 
 
-def getdist(x, y, z, x1, y1, z1):
-    return math.sqrt(math.pow((x1 - x), 2) + math.pow((y1 - y), 2) + math.pow((z1 - z), 2))
-
-
-
-
-# Initiaizes a single stationary galaxy centered at the origin
-def single_galaxy():
-    print("Creating a single Galaxy for you with %s stars...\n" % particleNum)
-    mw = Galaxy(galaxy_width, galaxy_height, 0, 0, 0, particleNum, 1)
-    mw.velocity = np.array([0, 0, 0])
-    mw.setstardistribution()
-    galaxies.append(mw)
-
-
-# Initializes two galaxies heading towards each other
-def double_galaxy():
-    print("Creating two Galaxies for you with %s stars each...\n" % (particleNum / 2))
-    mw = Galaxy(galaxy_width, galaxy_height, -80000, -60000, 0, particleNum / 2, 1)
-    an = Galaxy(galaxy_width, galaxy_height, 80000, 60000, 0, particleNum / 2, 2)
-    mw.velocity = np.array([10, 1, 0])
-    an.velocity = np.array([-10, -1, 0])
-    mw.setstardistribution()
-    an.setstardistribution()
-    galaxies.append(mw)
-    galaxies.append(an)
-
-
 # Writes the data for a single star at a
 def write(s):
     # w = "iter={0},X={1},Y={2},Z={3},c={4}\n".format(currentIteration, s.x, s.y, s.z, s.origin.color)
     w = "{0},{1},{2},{3},{4}\n".format(currentIteration, s.x, s.y, s.z, s.origin.color)
     f.write(w)
 
+
+# Gets distance between (x,y,z) and (x1,y1,z1)
+def getdist(x, y, z, x1, y1, z1):
+    return math.sqrt(math.pow((x1 - x), 2) + math.pow((y1 - y), 2) + math.pow((z1 - z), 2))
 
 # Gets the gravity vector between two stars in (SM * PC / s^2)
 def getgravityvector(s1, s2):
@@ -79,16 +52,12 @@ def getgravityvector(s1, s2):
     vg *= scalar
     return vg
 
-
 #Returns force between Star s and the center of Galaxy o using NFW Density Profile
 def getdarkmatterforce(s, g):
-
     # Distance between star and galaxy center
     r = getdist(g.x, g.y, g.z, s.x, s.y, s.z)
-
     # Integrated dark matter mass within radius r
     mdm = 4 * math.pi * P_crit * sig * math.pow(r_s, 3) * (math.log((r_s + r) / r_s) - (r / (r_s + r)))
-
     # Create gravity vector for star from dark matter mass pointing at center of galaxy
     vec = np.array([g.x, g.y, g.z]) - np.array([s.x, s.y, s.z])
     fgdm = G * s.mass / math.pow(r, 2) * mdm
@@ -96,26 +65,6 @@ def getdarkmatterforce(s, g):
     vec *= scale
     return vec
 
-def processStars(starsTemp):
-    for i in range(0, len(starsTemp) - 1):
-        s = starsTemp[i]
-        force = np.array([0., 0., 0.])
-
-        for j in range(0, len(starsTemp) - 1):
-            if j == i:
-                continue
-
-            # Find gravity vector calculations between each star and sum to a net force for each star'
-
-            # CHECK DISTANCE BETWEEN S and STARS[j] : IF GREATER THAN CERTAIN THRESHOLD THEN SKIP THIS CALCULATION TO IMPROVE PERFORMANCE
-            g = getgravityvector(s, starsTemp[j])
-            force += g
-
-        if s.mass != s.origin.smbh_mass:
-            dm = getdarkmatterforce(s, s.origin)
-            force += dm
-        s.force = force
-    return starsTemp
 
 # Calculates the position of each particle after force as been applied, and writes the data to the sim_data file
 def calculatemovesfromforce(t):
@@ -127,8 +76,55 @@ def calculatemovesfromforce(t):
         s.z += s.velocity[2] * t
         write(s)
 
+
+#Iterates over all stars and applies applicable forces and moves
+def processStars(starsTemp):
+    for i in range(0, len(starsTemp) - 1):
+        s = starsTemp[i]
+        force = np.array([0., 0., 0.])
+
+        for j in range(0, len(starsTemp) - 1):
+            if j == i:
+                continue
+
+            next_star = starsTemp[j]
+            if getdist(s.x, s.y, s.z, next_star.x, next_star.y,
+                       next_star.z) > 2000 and next_star.mass != next_star.origin.smbh_mass:
+                continue
+
+            # Find gravity vector calculations between each star and sum to a net force for each star
+            g = getgravityvector(s, starsTemp[j])
+            force += g
+
+        if s.mass != s.origin.smbh_mass:
+            for galaxy_origin in galaxies:
+                force += getdarkmatterforce(s, galaxy_origin)
+        s.force = force
+    return starsTemp
+
+
+# Initiaizes a single stationary galaxy centered at the origin
+def single_galaxy():
+    print("Creating a single Galaxy for you with {:d} stars...\n".format(int(particleNum)))
+    mw = Galaxy(galaxy_width, galaxy_height, 0, 0, 0, particleNum, 1)
+    mw.vel = np.array([0., 0., 0.])
+    mw.setstardistribution()
+    galaxies.append(mw)
+
+
+# Initializes two galaxies heading towards each other
+def double_galaxy():
+    print("Creating two Galaxies for you, each with {:d} stars...\n".format(int(particleNum / 2)))
+    mw = Galaxy(galaxy_width, galaxy_height, -40000, -30000, 0, particleNum / 2, 1)
+    an = Galaxy(galaxy_width, galaxy_height, 40000, 30000, 0, particleNum / 2, 2)
+    mw.vel = np.array([3e-11, 1e-11, 0])
+    an.vel = np.array([-3e-11, -3e-11, 0])
+    mw.setstardistribution()
+    an.setstardistribution()
+    galaxies.append(mw)
+    galaxies.append(an)
+
 # RUN_READER = True
-# RECALC_DIST = True
 
 # Simulation Variables and Constants #
 #### ALL DISTANCE UNITS ARE IN PARSECS ####
@@ -136,25 +132,21 @@ def calculatemovesfromforce(t):
 
 # Sim Vairables
 iterations = 200
-particleNum = 100
-timeStep = 0.4e14  # Seconds
-# galaxy_data_file = "galaxy_data.txt"
+particleNum = 200
+timeStep = 0.4e14  # Seconds (maybe should change to years)
 sim_data_file = "sim_data.txt"
 
 # Galaxy Variables
-
 galaxy_width = 35000
 galaxy_height = 300
-stars = []
-galaxies = []
 G = 4.51722e-30  # G constant converted to units: PC^3 / (SM * s^2)
 
-# NFW Variablesy
-r_s = 0.031e5
-r_200 = 55 * r_s  # Higher pulls outside stronger, inside weaker
-c = r_200 / r_s  ## MILKY WAY ~10-15 --> Set to 12.5
+# NFW Variables
+r_s = 3.1e3
+c = 55  ### MILKY WAY ~10-15 ###
 
 # NFW Constants
+r_200 = c * r_s
 P_crit = 3 * math.pow((67.6 / 3.09e19), 2) / (8 * math.pi * G)  # 3H^2/(8*Pi*G) --> SM/PC^3
 sig = (200 / 3) * math.pow(c, 3) / (math.log(c) - (c / (1 + c)))
 
@@ -174,19 +166,15 @@ if __name__ == '__main__':
             test_x = (i / test_star_num) * galaxy_width / 2
             test_galaxy.galaxy_stars.append(Star(1, test_x, 0, 0, test_galaxy))
 
-
         #Calculates expected force for an orbit with main_velo
         def expected_force(s):
             return s.mass * np.square(s.origin.main_velo) / s.x
 
-
         def get_error(exf, dmf):
             return -(exf - dmf) / exf
 
-
         errors = []
         test_smbh = Star(test_galaxy.smbh_mass, 0, 0, 0, test_galaxy)
-
         for s in test_galaxy.galaxy_stars:
             print("Star at radius %s" % s.x)
             exf = math.fabs(expected_force(s))
@@ -197,12 +185,13 @@ if __name__ == '__main__':
             errors.append(err)
             print("Error: %s" % err)
             print("\n")
-
         print("All error values:")
         print(errors)
         print("\n")
 
     if mode == 0 or mode == 2:
+        stars = []
+        galaxies = []
 
         ##########################################
         # Define either one galaxy or two galaxies
@@ -212,11 +201,10 @@ if __name__ == '__main__':
         # Calculate the timestep in year for display on sim reader
         timeStepYrs = timeStep / (60 * 60 * 24 * 365.25)
         stars = [temp_star for g in galaxies for temp_star in g.galaxy_stars]
-
         # Opens new data file and writes header (containing number of particles)
         print("Opening sim_data file...\n")
         f = open(sim_data_file, 'w')
-        f.write("HEAD:particles=" + repr(particleNum) + "\n")
+        f.write("HEAD:{},{}\n".format(len(galaxies), particleNum))
 
         simStartTime = time.perf_counter()
         updateTime = simStartTime
@@ -228,15 +216,15 @@ if __name__ == '__main__':
         with Parallel(n_jobs=n_jobs) as parallelizer:
             for n in range(1, iterations + 1):
 
-                # Update galactic center positions
-                for g in galaxies:
-                    g.update(timeStep)
+
 
                 stars1 = np.array(stars)
                 # this iterator returns the functions to execute for each task
                 tasks_iterator = (delayed(processStars)(starsTemp)
                                   for starsTemp in np.split(stars1, n_jobs))
                 result = parallelizer(tasks_iterator)
+                for star_list in result:
+                    star_list[0].origin.update(timeStep)
                 stars = np.concatenate(result)
 
                 # Calculate all particle moves and write them
@@ -247,14 +235,17 @@ if __name__ == '__main__':
                 updateTime = time.perf_counter() - simStartTime
                 time_est = (iterations - currentIteration) * updateTime / currentIteration
                 printProgress(n, iterations, prefix="Particle Position Calculation Progress:",
-                              suffix="Completed. (%s/%s iterations completed, Approx. %s seconds remaining)" % (
-                              currentIteration, iterations, repr(int(time_est))),
+                              suffix="Completed. ({:d}/{:d} iterations completed, Approx. {} seconds remaining)".format(
+                                  currentIteration, iterations, repr(int(time_est))) if currentIteration != iterations
+                              else "Completed. ({:d}/{:d} iterations completed)".format(currentIteration, iterations),
                               barLength=50)
+
+
 
         # Finished
         f.close()
         simEndTime = time.perf_counter()
         totalTime = simEndTime - simStartTime
         print(
-            "\n\nSimulation calculations completed in %s seconds! Run the sim_data.txt file in the SimReader to see your results.\n" % round(
+            "\nSimulation calculations completed in %s seconds! Run the sim_data.txt file in the SimReader to see your results.\n" % round(
                 totalTime, 2))

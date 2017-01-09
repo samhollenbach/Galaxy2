@@ -3,7 +3,6 @@ import math
 import sys
 import random
 
-
 # Star position in parsecs
 class Star:
     velocity = np.array([0., 0., 0.])
@@ -21,11 +20,11 @@ class Galaxy:
     smbh_mass = 4.2e6  ###Roughly Sagittarius A* mass in solar masses###
     galaxy_bulge_width = 1000
     galaxy_bulge_height = 1000
-    vel = np.array([0., 0., 0.])
     main_velo = 7.129e-12
-    galaxy_stars = []
 
     def __init__(self, width, height, x, y, z, numstars, color):
+        self.vel = np.array([0., 0., 0.])
+        self.galaxy_stars = []
         self.width = width
         self.height = height
         self.x = x
@@ -36,11 +35,13 @@ class Galaxy:
         self.setrandommultiplier()
 
     def setstardistribution(self):
-        smbh = Star(self.smbh_mass, 0., 0., 0., self)
+        smbh = Star(self.smbh_mass, self.x, self.y, self.z, self)
+        smbh.velocity = self.vel[:]
         self.galaxy_stars.append(smbh)
-        for i in range(1, self.numstars):
+        for i in range(1, int(self.numstars)):
             printProgress(i + 1, self.numstars, prefix="Setting Star Distributions:",
-                          suffix="Completed ({}/{} stars distributed)".format(i + 1, self.numstars), barLength=50)
+                          suffix="Completed ({}/{} stars distributed in galaxy {})".format(i + 1, int(self.numstars),
+                                                                                           self.color), barLength=50)
 
             # Determines random x and y position for star
             dist = self.getstarranddistributionrandomnum()
@@ -56,7 +57,7 @@ class Galaxy:
 
             # Mass in solar masses
             mass = 1 * (0.8 + random.random() * 10)
-            ts = Star(mass, x1, y1, z1, self)
+            ts = Star(mass, self.x + x1, self.y + y1, self.z + z1, self)
             self.set_star_velocity(ts)
             self.galaxy_stars.append(ts)
 
@@ -109,16 +110,15 @@ class Galaxy:
             velo *= -1
         vx = -velo * math.sin(theta)
         vy = velo * math.cos(theta)
-
-        v = np.array([vx, vy, 0])
-        v += self.vel
-        star.velocity = v
+        vz = 0
+        v = np.array([vx, vy, vz])
+        star.velocity = v + self.vel
 
     # Updates the position of the galactic center
     def update(self, t):
-        self.x = self.vel[0] * t
-        self.y = self.vel[1] * t
-        self.z = self.vel[2] * t
+        self.x = self.x + self.vel[0] * t
+        self.y = self.y + self.vel[1] * t
+        self.z = self.z + self.vel[2] * t
 
 
 def printProgress(iteration, total, prefix='', suffix='', decimals=1, barLength=100):
