@@ -1,8 +1,7 @@
 # Galaxy2
-## (version 2.1)
 
 [![license](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)]
-(https://github.com/samhollenbach/Galaxy_v2.1/LICENSE)
+(https://github.com/samhollenbach/Galaxy2/LICENSE)
 [![Release Version](https://img.shields.io/badge/release-2.1-red.svg)](https://github.com/Tencent/mars/releases)
 
 This is a project created by Sam Hollenbach as an independent research project at Macalester College.
@@ -21,14 +20,14 @@ Notable features of v2.1:
 
 -Dark Matter analysis mode, to quickly determine how accurate the NFW profile is with specified constants
 
--[3D visualization](https://github.com/samhollenbach/Galaxy_v2.1/blob/master/Reader.py) using the Python library [matplotlib](http://matplotlib.org/)
+-[3D visualization](https://github.com/samhollenbach/Galaxy2/blob/master/Reader.py) using the Python library [matplotlib](http://matplotlib.org/)
 
 -Parallel processing ability using the Python library [joblib](https://pythonhosted.org/joblib/)
 
 -All around improved code speed and readability
 
 
-Galaxy_v2 can be run with either one or two galaxies at the moment, but infinitely scalable. The galaxy initializations can be found in the single_galaxy() and double_galaxy() methods. Follow the format in these methods to create your own galaxy/galaxies with the constants you desire.
+Galaxy2 can be run with either one or two galaxies at the moment, but infinitely scalable. The galaxy initializations can be found in the single_galaxy() and double_galaxy() methods. Follow the format in these methods to create your own galaxy/galaxies with the constants you desire.
 
 
 Contact me at shollenb@macalester.edu if you have any quesitons
