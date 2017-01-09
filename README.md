@@ -33,7 +33,7 @@ Notable features of v2.1:
 
 The format for creating a galaxy in Galaxy2 is very simple:
 
-'''python
+```python
 #Create your galaxy with specified spiral disk size, position, and star number
 #Must have an id to differentiate between other galaxies
 milky_way = Galaxy(galaxy_width, galaxy_height, posX, posY, posZ, starNum, id)
@@ -46,16 +46,16 @@ milky_way.setstardistribution()
 
 #Add this galaxy
 galaxies.append(milky_way)
-'''
+```
 
 You can find the 
-'''python
+```python
 single_galaxy()
-'''
+```
 and
-'''python
+```python
 double_galaxy()
-'''
+```
 methods in the [SimMain.py file](https://github.com/samhollenbach/Galaxy2/blob/master/SimMain.py), which follow this same format.
 
 Contact me at shollenb@macalester.edu if you have any quesitons
