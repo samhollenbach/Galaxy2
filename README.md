@@ -10,12 +10,11 @@ The simulation began as a open ended project for my Modern Astronomy course duri
 
 Galaxy_v1 can be found at [here](https://github.com/samhollenbach/Galaxy)
 
-Galaxy can be run with either one or two galaxies at the moment, but infinitely scalable. The galaxy initializations can be found in the single_galaxy() and double_galaxy() methods. Follow the format in these methods to create your own galaxy/galaxies with the constants you desire.
 
 Galaxy_v2 has been drasticly improved in simulation accuracy, code effciency, and visualization.
 
 
-Notable features of v2:
+Notable features of v2.1:
 
 -[NFW Dark Matter Profile integration](https://en.wikipedia.org/wiki/Navarro%E2%80%93Frenk%E2%80%93White_profile)
 
@@ -26,6 +25,9 @@ Notable features of v2:
 -Parallel processing ability using the Python library [joblib](https://pythonhosted.org/joblib/)
 
 -All around improved code speed and readability
+
+
+Galaxy_v2 can be run with either one or two galaxies at the moment, but infinitely scalable. The galaxy initializations can be found in the single_galaxy() and double_galaxy() methods. Follow the format in these methods to create your own galaxy/galaxies with the constants you desire.
 
 
 Contact me at shollenb@macalester.edu if you have any quesitons
