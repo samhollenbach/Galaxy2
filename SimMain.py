@@ -3,29 +3,8 @@ import math
 import sys
 import time
 from joblib import Parallel, delayed
-from SimComponents import Star, Galaxy
-
-#Prints a progress bar which updates while running a computational loop
-def printProgress(iteration, total, prefix='', suffix='', decimals=1, barLength=100):
-    """
-    Call in a loop to create terminal progress bar
-    @params:
-        iteration   - Required  : current iteration (Int)
-        total       - Required  : total iterations (Int)
-        prefix      - Optional  : prefix string (Str)
-        suffix      - Optional  : suffix string (Str)
-        decimals    - Optional  : positive number of decimals in percent complete (Int)
-        barLength   - Optional  : character length of bar (Int)
-    """
-    formatStr = "{0:." + str(decimals) + "f}"
-    percents = formatStr.format(100 * (iteration / float(total)))
-    filledLength = int(round(barLength * iteration / float(total)))
-    bar = '=' * filledLength + '-' * (barLength - filledLength)
-    sys.stdout.write('\r%s |%s| %s%s %s' % (prefix, bar, percents, '%', suffix)),
-    if iteration == total:
-        sys.stdout.write('\r%s |%s| %s%s %s' % (prefix, bar, 100, '%', suffix)),
-        sys.stdout.write('\n')
-    sys.stdout.flush()
+from SimComponents import Star, Galaxy, printProgress
+import argparse
 
 
 # Writes the data for a single star at a
@@ -93,8 +72,7 @@ def processStars(starsTemp):
                 continue
 
             # Find gravity vector calculations between each star and sum to a net force for each star
-            g = getgravityvector(s, starsTemp[j])
-            force += g
+            force += getgravityvector(s, next_star)
 
         if s.mass != s.origin.smbh_mass:
             for galaxy_origin in galaxies:
@@ -105,16 +83,16 @@ def processStars(starsTemp):
 
 # Initiaizes a single stationary galaxy centered at the origin
 def single_galaxy():
-    print("Creating a single Galaxy for you with {:d} stars...\n".format(int(particleNum)))
+    print("\nCreating a single Galaxy for you with {:d} stars...\n".format(int(particleNum)))
     mw = Galaxy(galaxy_width, galaxy_height, 0, 0, 0, particleNum, 1)
-    mw.vel = np.array([0., 0., 0.])
+    # mw.vel = np.array([0., 0., 0.])
     mw.setstardistribution()
     galaxies.append(mw)
 
 
 # Initializes two galaxies heading towards each other
 def double_galaxy():
-    print("Creating two Galaxies for you, each with {:d} stars...\n".format(int(particleNum / 2)))
+    print("\nCreating two Galaxies for you, each with {:d} stars...\n".format(int(particleNum / 2)))
     mw = Galaxy(galaxy_width, galaxy_height, -40000, -30000, 0, particleNum / 2, 1)
     an = Galaxy(galaxy_width, galaxy_height, 40000, 30000, 0, particleNum / 2, 2)
     mw.vel = np.array([3e-11, 1e-11, 0])
@@ -132,7 +110,7 @@ def double_galaxy():
 
 # Sim Vairables
 iterations = 200
-particleNum = 200
+particleNum = 100
 timeStep = 0.4e14  # Seconds (maybe should change to years)
 sim_data_file = "sim_data.txt"
 
@@ -152,6 +130,19 @@ sig = (200 / 3) * math.pow(c, 3) / (math.log(c) - (c / (1 + c)))
 
 # 0 - Simulation, 1 - DM Analysis, 2 - Analysis and Simulation
 mode = 0
+
+# Pass in arguments for iterations/particles
+parser = argparse.ArgumentParser()
+parser.add_argument("-p", "--particles", help="Number of particles to run in the simulation", type=int)
+parser.add_argument("-i", "--iterations", help="Number frames the simulation will run for", type=int)
+parser.add_argument("-m", "--mode", help="Modes: 0 = Simulation, 1 = Dark Matter Analysis, 2 = Both", type=int)
+args = parser.parse_args()
+if args.particles:
+    particleNum = args.particles
+if args.iterations:
+    iterations = args.iterations
+if args.mode:
+    mode = args.mode
 
 #######START SIMULATION RUN#########
 if __name__ == '__main__':
@@ -190,7 +181,7 @@ if __name__ == '__main__':
         print("\n")
 
     if mode == 0 or mode == 2:
-        stars = []
+        #stars = np.array
         galaxies = []
 
         ##########################################
@@ -200,7 +191,7 @@ if __name__ == '__main__':
 
         # Calculate the timestep in year for display on sim reader
         timeStepYrs = timeStep / (60 * 60 * 24 * 365.25)
-        stars = [temp_star for g in galaxies for temp_star in g.galaxy_stars]
+        stars = np.array([temp_star for g in galaxies for temp_star in g.galaxy_stars])
         # Opens new data file and writes header (containing number of particles)
         print("Opening sim_data file...\n")
         f = open(sim_data_file, 'w')
@@ -216,13 +207,11 @@ if __name__ == '__main__':
         with Parallel(n_jobs=n_jobs) as parallelizer:
             for n in range(1, iterations + 1):
 
-
-
-                stars1 = np.array(stars)
                 # this iterator returns the functions to execute for each task
                 tasks_iterator = (delayed(processStars)(starsTemp)
-                                  for starsTemp in np.split(stars1, n_jobs))
+                                  for starsTemp in np.split(stars, n_jobs))
                 result = parallelizer(tasks_iterator)
+                #Need to update the galaxy origin once for each job array split (no idea why)
                 for star_list in result:
                     star_list[0].origin.update(timeStep)
                 stars = np.concatenate(result)
@@ -232,7 +221,9 @@ if __name__ == '__main__':
 
                 # Count iterations and print progress bar
                 currentIteration += 1
+                #Calculation time for this iteration
                 updateTime = time.perf_counter() - simStartTime
+                #Create remaining time estimate from this iteration time
                 time_est = (iterations - currentIteration) * updateTime / currentIteration
                 printProgress(n, iterations, prefix="Particle Position Calculation Progress:",
                               suffix="Completed. ({:d}/{:d} iterations completed, Approx. {} seconds remaining)".format(

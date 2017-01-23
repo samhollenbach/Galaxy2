@@ -20,7 +20,7 @@ class Galaxy:
     smbh_mass = 4.2e6  ###Roughly Sagittarius A* mass in solar masses###
     galaxy_bulge_width = 1000
     galaxy_bulge_height = 1000
-    main_velo = 7.129e-12
+    main_disk_vel = 7.129e-12
 
     def __init__(self, width, height, x, y, z, numstars, color):
         self.vel = np.array([0., 0., 0.])
@@ -32,7 +32,13 @@ class Galaxy:
         self.z = z
         self.numstars = numstars
         self.color = color
-        self.setrandommultiplier()
+        self.set_rand_multiplier()
+
+    # Updates the position of the galactic center
+    def update(self, t):
+        self.x = self.x + self.vel[0] * t
+        self.y = self.y + self.vel[1] * t
+        self.z = self.z + self.vel[2] * t
 
     def setstardistribution(self):
         smbh = Star(self.smbh_mass, self.x, self.y, self.z, self)
@@ -40,11 +46,11 @@ class Galaxy:
         self.galaxy_stars.append(smbh)
         for i in range(1, int(self.numstars)):
             printProgress(i + 1, self.numstars, prefix="Setting Star Distributions:",
-                          suffix="Completed ({}/{} stars distributed in galaxy {})".format(i + 1, int(self.numstars),
+                          suffix="Completed ({}/{} stars distributed in galaxy {})".format((i + 1), int(self.numstars),
                                                                                            self.color), barLength=50)
 
             # Determines random x and y position for star
-            dist = self.getstarranddistributionrandomnum()
+            dist = self.get_star_rand_num()
             angle = random.random() * 2 * math.pi
             x1 = dist * math.cos(angle)
             y1 = dist * math.sin(angle)
@@ -64,29 +70,6 @@ class Galaxy:
         print("\n")
         # May need to add in color code things
 
-    # Get the initial random multiplier to use for star distribution
-    def setrandommultiplier(self):
-        self.randommultiplier = 0.0
-        for i in range(1, self.width):
-            self.randommultiplier += self.starden(i)
-
-    # For star distribution calculations
-    def getstarranddistributionrandomnum(self):
-        n = 1
-        r = random.random() * self.randommultiplier
-        r -= self.starden(n)
-
-        while r >= 0:
-            n += 1
-            r -= self.starden(n)
-
-        return n
-
-    # Used to determine density of stars in galaxy by radius
-    @staticmethod
-    def starden(r):
-        return np.exp(-r / 3000)
-
     # Sets star velocity perpendicular to the center of the galaxy
     def set_star_velocity(self, star):
         xt = self.x - star.x
@@ -97,7 +80,7 @@ class Galaxy:
 
         # Initial velocity in pc/s
         # velo = 7.129e-12  #220 km/s in pc/s
-        velo = self.main_velo
+        velo = self.main_disk_vel
 
         # Center of galaxy
         r1 = 1000
@@ -114,11 +97,32 @@ class Galaxy:
         v = np.array([vx, vy, vz])
         star.velocity = v + self.vel
 
-    # Updates the position of the galactic center
-    def update(self, t):
-        self.x = self.x + self.vel[0] * t
-        self.y = self.y + self.vel[1] * t
-        self.z = self.z + self.vel[2] * t
+    # Used to determine density of stars in galaxy by radius
+    @staticmethod
+    def star_density(r):
+        return np.exp(-r / 3000)
+
+    # Get the initial random multiplier to use for star distribution
+    def set_rand_multiplier(self):
+        self.randommultiplier = 0.0
+        for i in range(1, self.width):
+            self.randommultiplier += self.star_density(i)
+
+    # For star distribution calculations
+    def get_star_rand_num(self):
+        n = 1
+        r = random.random() * self.randommultiplier
+        r -= self.star_density(n)
+        while r >= 0:
+            n += 1
+            r -= self.star_density(n)
+        return n
+
+
+
+
+
+
 
 
 def printProgress(iteration, total, prefix='', suffix='', decimals=1, barLength=100):

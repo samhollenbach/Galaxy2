@@ -3,6 +3,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
 REPEAT = True
+SAVE_IMAGES = False
 
 def randrange(n, vmin, vmax):
     return (vmax - vmin)*np.random.rand(n) + vmin
@@ -39,11 +40,12 @@ def updateplot(iteration, xs, ys, zs, galaxy_num, particle_num):
     ax.set_xlabel('(pc)')
     ax.set_ylabel('(pc)')
     ax.set_zlabel('(pc)')
-
     ax.text2D(0.05, 0.95, "Iteration: " + repr(iteration), transform=ax.transAxes, color='red')
     ax.text2D(0.05, 0.90, "Galaxies: " + repr(galaxy_num), transform=ax.transAxes, color='red')
     ax.text2D(0.05, 0.85, "Particles: " + repr(particle_num), transform=ax.transAxes, color='red')
     ax.scatter(xs, ys, zs, c='r', marker='o', s=5)
+    if (SAVE_IMAGES):
+        plt.savefig("frames/frame_0{}.png".format(iteration))
     plt.pause(0.001)
 
 
