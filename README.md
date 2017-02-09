@@ -5,9 +5,8 @@
 [![Release Version](https://img.shields.io/badge/release-2.1-red.svg)](https://github.com/Tencent/mars/releases)
 
 
-### Galaxy2 running 1 galaxy with 400 particles in the Reader.py program 
 ![Example](resources/galaxy2.gif "Example Galaxy shown with the Reader.py with 400 particles")
-
+**Galaxy2 running 1 galaxy with 400 particles in the Reader.py program** 
 
 ## Background
 
@@ -69,26 +68,25 @@ double_galaxy()
 ```
 These methods can be found in the [SimMain.py file](https://github.com/samhollenbach/Galaxy2/blob/master/SimMain.py)
 
-## Visualizing the data file
+## The sim_data file
 
-The example sim_data file is [here](https://github.com/samhollenbach/Galaxy2/blob/master/sim_data.txt)
-
-The format of the data file is as follows:
-
-The first line is always
+The first line of the data file is always
 ```python
 HEAD:{Number of Galaxies},{Particle Number}
 ```
+This lets the reader know how many particles and galaxies to expect so it can draw the labels on the screen.
 
-The subsequent lines start with the iteration number, and for each iteration there are as many lines are there are particles. This means the total number of lines in the file is 
-{Iterations}x{Particles}+1
+
+The subsequent lines start with the iteration number, and for each iteration there is a line for every particle in the simulation. This means the total number of lines in the file will be **{Iterations}x{Particles}+1**
 
 The format for each iteration line is
 ```python
 {Iteration},{Pos_X},{Pos_Y},{Pos_Z},{Source_Galaxy_ID}
 ```
 
-See the Reader.py for how to parse the datafile.
+The example sim_data file is [here](https://github.com/samhollenbach/Galaxy2/blob/master/sim_data.txt)
+
+See the Reader.py for more info on how to parse the datafile.
 
 
 Please contact me at shollenb@macalester.edu if you have any quesitons or inquiries.
