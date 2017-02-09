@@ -10,9 +10,7 @@ class Star:
 
     def __init__(self, mass, x, y, z, origin):
         self.mass = mass
-        self.x = x
-        self.y = y
-        self.z = z
+        self.pos = np.array([x, y, z])
         self.origin = origin
 
 
@@ -27,21 +25,20 @@ class Galaxy:
         self.galaxy_stars = []
         self.width = width
         self.height = height
-        self.x = x
-        self.y = y
-        self.z = z
+        self.pos = np.array([x, y, z])
         self.numstars = numstars
         self.color = color
         self.set_rand_multiplier()
 
     # Updates the position of the galactic center
     def update(self, t):
-        self.x = self.x + self.vel[0] * t
-        self.y = self.y + self.vel[1] * t
-        self.z = self.z + self.vel[2] * t
+        self.pos = self.pos + (self.vel * t)
+        # self.x = self.x + self.vel[0] * t
+        # self.y = self.y + self.vel[1] * t
+        # self.z = self.z + self.vel[2] * t
 
     def setstardistribution(self):
-        smbh = Star(self.smbh_mass, self.x, self.y, self.z, self)
+        smbh = Star(self.smbh_mass, self.pos[0], self.pos[1], self.pos[2], self)
         smbh.velocity = self.vel[:]
         self.galaxy_stars.append(smbh)
         for i in range(1, int(self.numstars)):
@@ -63,7 +60,7 @@ class Galaxy:
 
             # Mass in solar masses
             mass = 1 * (0.8 + random.random() * 10)
-            ts = Star(mass, self.x + x1, self.y + y1, self.z + z1, self)
+            ts = Star(mass, self.pos[0] + x1, self.pos[1] + y1, self.pos[2] + z1, self)
             self.set_star_velocity(ts)
             self.galaxy_stars.append(ts)
 
@@ -72,8 +69,8 @@ class Galaxy:
 
     # Sets star velocity perpendicular to the center of the galaxy
     def set_star_velocity(self, star):
-        xt = self.x - star.x
-        yt = self.y - star.y
+        xt = self.pos[0] - star.pos[0]
+        yt = self.pos[1] - star.pos[1]
 
         a = np.array([xt, yt, 0])
         r = np.linalg.norm(a)
@@ -105,7 +102,7 @@ class Galaxy:
     # Get the initial random multiplier to use for star distribution
     def set_rand_multiplier(self):
         self.randommultiplier = 0.0
-        for i in range(1, self.width):
+        for i in range(1, int(self.width)):
             self.randommultiplier += self.star_density(i)
 
     # For star distribution calculations

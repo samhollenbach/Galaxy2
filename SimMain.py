@@ -9,24 +9,29 @@ import argparse
 
 # Writes the data for a single star at a
 def write(s):
-    # w = "iter={0},X={1},Y={2},Z={3},c={4}\n".format(currentIteration, s.x, s.y, s.z, s.origin.color)
-    w = "{0},{1},{2},{3},{4}\n".format(currentIteration, s.x, s.y, s.z, s.origin.color)
+    w = "{0},{1},{2},{3},{4}\n".format(currentIteration, s.pos[0], s.pos[1], s.pos[2], s.origin.color)
     f.write(w)
 
 
+def getdist(pos1, pos2):
+    p2 = np.square(pos2 - pos1)
+    return math.sqrt(np.sum(p2))
+
 # Gets distance between (x,y,z) and (x1,y1,z1)
-def getdist(x, y, z, x1, y1, z1):
-    return math.sqrt(math.pow((x1 - x), 2) + math.pow((y1 - y), 2) + math.pow((z1 - z), 2))
+# def getdist(x, y, z, x1, y1, z1):
+# return math.sqrt(math.pow((x1 - x), 2) + math.pow((y1 - y), 2) + math.pow((z1 - z), 2))
 
 # Gets the gravity vector between two stars in (SM * PC / s^2)
 def getgravityvector(s1, s2):
-    dx = s2.x - s1.x
-    dy = s2.y - s1.y
-    dz = s2.z - s1.z
+    d = s2.pos - s1.pos
+    d2 = np.square(d)
+    # dx = s2.x - s1.x
+    # dy = s2.y - s1.y
+    # dz = s2.z - s1.z
 
-    fg = G * s1.mass * s2.mass / (dx * dx + dy * dy + dz * dz)  # SM * PC / s^2
+    fg = G * s1.mass * s2.mass / np.sum(d2)  # SM * PC / s^2
 
-    vg = np.array([dx, dy, dz])
+    vg = d
     scalar = -fg / np.linalg.norm(vg)
     vg *= scalar
     return vg
@@ -34,11 +39,11 @@ def getgravityvector(s1, s2):
 #Returns force between Star s and the center of Galaxy o using NFW Density Profile
 def getdarkmatterforce(s, g):
     # Distance between star and galaxy center
-    r = getdist(g.x, g.y, g.z, s.x, s.y, s.z)
+    r = getdist(g.pos, s.pos)
     # Integrated dark matter mass within radius r
     mdm = 4 * math.pi * P_crit * sig * math.pow(r_s, 3) * (math.log((r_s + r) / r_s) - (r / (r_s + r)))
     # Create gravity vector for star from dark matter mass pointing at center of galaxy
-    vec = np.array([g.x, g.y, g.z]) - np.array([s.x, s.y, s.z])
+    vec = g.pos - s.pos
     fgdm = G * s.mass / math.pow(r, 2) * mdm
     scale = fgdm / np.linalg.norm(vec)
     vec *= scale
@@ -50,9 +55,7 @@ def calculatemovesfromforce(t):
     for s in stars:
         a = s.force / s.mass
         s.velocity += (a * t)
-        s.x += s.velocity[0] * t
-        s.y += s.velocity[1] * t
-        s.z += s.velocity[2] * t
+        s.pos += s.velocity * t
         write(s)
 
 
@@ -67,8 +70,7 @@ def processStars(starsTemp):
                 continue
 
             next_star = starsTemp[j]
-            if getdist(s.x, s.y, s.z, next_star.x, next_star.y,
-                       next_star.z) > 2000 and next_star.mass != next_star.origin.smbh_mass:
+            if getdist(s.pos, next_star.pos) > 2000 and next_star.mass != next_star.origin.smbh_mass:
                 continue
 
             # Find gravity vector calculations between each star and sum to a net force for each star
@@ -84,7 +86,7 @@ def processStars(starsTemp):
 # Initiaizes a single stationary galaxy centered at the origin
 def single_galaxy():
     print("\nCreating a single Galaxy for you with {:d} stars...\n".format(int(particleNum)))
-    mw = Galaxy(galaxy_width, galaxy_height, 0, 0, 0, particleNum, 1)
+    mw = Galaxy(galaxy_width, galaxy_height, 0., 0., 0., particleNum, 1)
     # mw.vel = np.array([0., 0., 0.])
     mw.setstardistribution()
     galaxies.append(mw)
@@ -109,14 +111,14 @@ def double_galaxy():
 #### ALL MASS UNITS ARE IN SOLAR MASSES ####
 
 # Sim Vairables
-iterations = 200
-particleNum = 100
+iterations = 150
+particleNum = 400
 timeStep = 0.4e14  # Seconds (maybe should change to years)
 sim_data_file = "sim_data.txt"
 
 # Galaxy Variables
-galaxy_width = 35000
-galaxy_height = 300
+galaxy_width = 35000.
+galaxy_height = 300.
 G = 4.51722e-30  # G constant converted to units: PC^3 / (SM * s^2)
 
 # NFW Variables
@@ -159,7 +161,7 @@ if __name__ == '__main__':
 
         #Calculates expected force for an orbit with main_velo
         def expected_force(s):
-            return s.mass * np.square(s.origin.main_velo) / s.x
+            return s.mass * np.square(s.origin.main_velo) / s.pos[0]
 
         def get_error(exf, dmf):
             return -(exf - dmf) / exf
@@ -167,7 +169,7 @@ if __name__ == '__main__':
         errors = []
         test_smbh = Star(test_galaxy.smbh_mass, 0, 0, 0, test_galaxy)
         for s in test_galaxy.galaxy_stars:
-            print("Star at radius %s" % s.x)
+            print("Star at radius %s" % s.pos[0])
             exf = math.fabs(expected_force(s))
             dmf = math.fabs(getdarkmatterforce(s, test_galaxy)[0] + getgravityvector(s, test_smbh)[0])
             print("Expected: %s" % exf)
