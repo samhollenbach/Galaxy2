@@ -76,12 +76,17 @@ The example sim_data file is [here](https://github.com/samhollenbach/Galaxy2/blo
 The format of the data file is as follows:
 
 The first line is always
+```python
 HEAD:{Number of Galaxies},{Particle Number}
+```
 
-The subsequent lines start with the iteration number, and for each iteration there are as many lines are there are particles. This means the total number of lines in the file is {Iterations}x{Particles}+1
+The subsequent lines start with the iteration number, and for each iteration there are as many lines are there are particles. This means the total number of lines in the file is 
+{Iterations}x{Particles}+1
 
 The format for each iteration line
+```python
 {Iteration},{Pos_X},{Pos_Y},{Pos_Z},{Source_Galaxy_ID}
+```
 
 See the Reader.py for how to parse the datafile.
 
