@@ -69,4 +69,21 @@ double_galaxy()
 ```
 These methods can be found in the [SimMain.py file](https://github.com/samhollenbach/Galaxy2/blob/master/SimMain.py)
 
+## Visualizing the data file
+
+The example sim_data file is [here](https://github.com/samhollenbach/Galaxy2/blob/master/sim_data.txt)
+
+The format of the data file is as follows:
+
+The first line is always
+HEAD:{Number of Galaxies},{Particle Number}
+
+The subsequent lines start with the iteration number, and for each iteration there are as many lines are there are particles. This means the total number of lines in the file is {Iterations}x{Particles}+1
+
+The format for each iteration line
+{Iteration},{Pos_X},{Pos_Y},{Pos_Z},{Source_Galaxy_ID}
+
+See the Reader.py for how to parse the datafile.
+
+
 Contact me at shollenb@macalester.edu if you have any quesitons
