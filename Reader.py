@@ -1,9 +1,10 @@
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
+import sys
 
 REPEAT = True
-SAVE_IMAGES = True
+SAVE_IMAGES = False
 
 def randrange(n, vmin, vmax):
     return (vmax - vmin)*np.random.rand(n) + vmin
@@ -72,7 +73,14 @@ def read_sim():
             i = data[0]
             if i != iter:
                 iter = i
-                updateplot(iter, xs, ys, zs, galaxies, particles)
+
+                try:
+                    updateplot(iter, xs, ys, zs, galaxies, particles)
+                    break
+                except UnboundLocalError:
+                    print("Improper HEAD line in your sim_data file, please fix this error and try again")
+                    sys.exit()
+
 
                 xs = []
                 ys = []
