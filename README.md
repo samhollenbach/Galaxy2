@@ -11,11 +11,9 @@
 
 ## Background
 
-This is a project created by Sam Hollenbach as an independent research project at Macalester College.
+This simulation began as a open ended project for my Modern Astronomy course as a freshman at Macalester College. The first generation (Galaxy_v1) could only be visualized in 2D and had a very rudimentary Dark Matter approximation, as well as being very inefficient in many calculations. 
 
-The simulation began as a open ended project for my Modern Astronomy course as a freshman. The first generation (Galaxy_v1) could only be visualized in 2D and had a very rudimentary Dark Matter approximation, as well as being very inefficient in many calculations. 
-
-Galaxy_v1 can be found at [here](https://github.com/samhollenbach/Galaxy)
+Galaxy_v1 can be found [here](https://github.com/samhollenbach/Galaxy)
 
 ## Features of Galaxy2
 
