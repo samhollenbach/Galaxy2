@@ -25,7 +25,7 @@ Notable features of v2.1:
 
 * [Navarro-Frenk-White Dark Matter Profile](https://arxiv.org/abs/astro-ph/9508025) integration
 * Dark Matter analysis mode, to quickly determine how accurate the NFW profile is with specified constants
-* [3D visualization](https://github.com/samhollenbach/Galaxy2/blob/master/Reader.py) using [matplotlib](http://matplotlib.org/)
+* [3D visualization](Reader.py) using [matplotlib](http://matplotlib.org/)
 * Parallel processing ability using [joblib](https://pythonhosted.org/joblib/)
 * Improved code speed and readability
 
@@ -63,7 +63,7 @@ and
 ```python
 double_galaxy()
 ```
-These methods can be found in the [SimMain.py file](https://github.com/samhollenbach/Galaxy2/blob/master/SimMain.py)
+These methods can be found in the [SimMain.py file](SimMain.py)
 
 ## The sim_data file
 
@@ -81,7 +81,7 @@ The format for each iteration line is
 {Iteration},{Particle_X},{Particle_Y},{Particle_Z},{Source_Galaxy_ID}
 ```
 
-The example sim_data file is [here](https://github.com/samhollenbach/Galaxy2/blob/master/sim_data.txt)
+The example sim_data file is [here](sim_data.txt)
 
 See the Reader.py for more info on how to parse the datafile.
 
