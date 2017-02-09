@@ -73,16 +73,16 @@ These methods can be found in the [SimMain.py file](https://github.com/samhollen
 
 The first line of the data file is always
 ```python
-HEAD:{Number of Galaxies},{Particle Number}
+HEAD:{Number of Galaxies},{Total Particle Number}
 ```
 This lets the reader know how many particles and galaxies to expect so it can draw the labels on the screen.
 
 
-The subsequent lines start with the iteration number, and for each iteration there is a line for every particle in the simulation. This means the total number of lines in the file will be **{Iterations}x{Particles}+1**
+The subsequent lines start with the iteration number, and for each iteration there is a line for every particle in the simulation. This means the total number of lines in the file will be **{Total Iterations}x{Total Particles}+1**
 
 The format for each iteration line is
 ```python
-{Iteration},{Pos_X},{Pos_Y},{Pos_Z},{Source_Galaxy_ID}
+{Iteration},{Particle_X},{Particle_Y},{Particle_Z},{Source_Galaxy_ID}
 ```
 
 The example sim_data file is [here](https://github.com/samhollenbach/Galaxy2/blob/master/sim_data.txt)
