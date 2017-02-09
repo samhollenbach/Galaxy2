@@ -22,7 +22,7 @@ Galaxy2 has been drasticly improved in simulation accuracy, code effciency, and 
 
 Notable features of v2.1:
 
-* [NFW Dark Matter Profile](https://en.wikipedia.org/wiki/Navarro%E2%80%93Frenk%E2%80%93White_profile) integration
+* [Navarro-Frenk-White Dark Matter Profile](https://arxiv.org/abs/astro-ph/9508025) integration
 * Dark Matter analysis mode, to quickly determine how accurate the NFW profile is with specified constants
 * [3D visualization](https://github.com/samhollenbach/Galaxy2/blob/master/Reader.py) using [matplotlib](http://matplotlib.org/)
 * Parallel processing ability using [joblib](https://pythonhosted.org/joblib/)
@@ -32,24 +32,23 @@ Notable features of v2.1:
 
 The format for creating a galaxy in Galaxy2 is a very simple 4 steps:
 
+Create your galaxy with specified spiral disk size, position, and star number. The galaxy must have an ID to differentiate between other galaxies for color visualization.
 ```python
-#Create your galaxy with specified spiral disk size, position, and star number
-#Must have an id to differentiate between other galaxies
 milky_way = Galaxy(galaxy_width, galaxy_height, posX, posY, posZ, starNum, id)
 ```
 
+Sets the peculiar velocity of your galaxy (for interaction between multiple galaxies).
 ```python
-#Sets the peculiar velocity of your galaxy (for interaction between multiple galaxies)
 milky_way.vel = np.array([velocityX, velocityY, velocityZ])
 ```
 
+Randomly distributes the stars in your galaxy based on distance from galactic center.
 ```python
-#Randomly distributes the stars in your galaxy 
 milky_way.setstardistribution() 
 ```
 
+Add this galaxy to the simulation
 ```python
-#Add this galaxy
 galaxies.append(milky_way)
 ```
 
