@@ -53,7 +53,7 @@ milky_way.setstardistribution()
 galaxies.append(milky_way)
 ```
 
-### Built in galaxies
+## Built in galaxies
 
 There are two built in methods for creating 1 or 2 galaxies:
 ```python
