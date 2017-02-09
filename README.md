@@ -4,6 +4,9 @@
 (https://github.com/samhollenbach/Galaxy2/LICENSE)
 [![Release Version](https://img.shields.io/badge/release-2.1-red.svg)](https://github.com/Tencent/mars/releases)
 
+![Example](resources/galaxy2.gif "Example Galaxy shown with the Reader.py with 400 particles")
+
+
 ## Background
 
 This is a project created by Sam Hollenbach as an independent research project at Macalester College.
