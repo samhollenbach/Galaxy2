@@ -5,7 +5,7 @@
 [![Release Version](https://img.shields.io/badge/release-2.1-red.svg)](https://github.com/Tencent/mars/releases)
 
 
-### Galaxy2 running with the Reader.py program with 400 particles
+### Galaxy2 running 1 galaxy with 400 particles in the Reader.py program 
 ![Example](resources/galaxy2.gif "Example Galaxy shown with the Reader.py with 400 particles")
 
 
