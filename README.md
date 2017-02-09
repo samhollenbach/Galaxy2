@@ -25,9 +25,10 @@ Notable features of v2.1:
 
 * [Navarro-Frenk-White Dark Matter Profile](https://arxiv.org/abs/astro-ph/9508025) integration
 * Dark Matter analysis mode, to quickly determine how accurate the NFW profile is with specified constants
-* [3D visualization](Reader.py) using [matplotlib](http://matplotlib.org/)
 * Parallel processing ability using [joblib](https://pythonhosted.org/joblib/)
 * Improved code speed and readability
+* 3D visualization with the [Reader.py](Reader.py) script using [matplotlib](http://matplotlib.org/)
+* Frame printout from Reader for movie creation
 
 ## Creating your own galaxy
 
