@@ -6,7 +6,6 @@
 
 
 ### Galaxy2 running with the Reader.py program with 400 particles
-
 ![Example](resources/galaxy2.gif "Example Galaxy shown with the Reader.py with 400 particles")
 
 
