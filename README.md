@@ -22,7 +22,7 @@ Galaxy2 has been drasticly improved in simulation accuracy, code effciency, and 
 
 Notable features of v2.1:
 
-* [NFW Dark Matter Profile integration](https://en.wikipedia.org/wiki/Navarro%E2%80%93Frenk%E2%80%93White_profile)
+* [NFW Dark Matter Profile](https://en.wikipedia.org/wiki/Navarro%E2%80%93Frenk%E2%80%93White_profile) integration
 * Dark Matter analysis mode, to quickly determine how accurate the NFW profile is with specified constants
 * [3D visualization](https://github.com/samhollenbach/Galaxy2/blob/master/Reader.py) using [matplotlib](http://matplotlib.org/)
 * Parallel processing ability using [joblib](https://pythonhosted.org/joblib/)
