@@ -86,4 +86,8 @@ The example sim_data file is [here](https://github.com/samhollenbach/Galaxy2/blo
 See the Reader.py for more info on how to parse the datafile.
 
 
+## Contact
+
+My name is Sam Hollenbach and I am a sophomore at Macalester College. I am majoring in computer science and physics with an astronomy emphasis.
+
 Please contact me at shollenb@macalester.edu if you have any quesitons or inquiries.
