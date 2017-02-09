@@ -32,22 +32,22 @@ Notable features of v2.1:
 
 The format for creating a galaxy in Galaxy2 is a very simple 4 steps:
 
-Create your galaxy with specified spiral disk size, position, and star number. The galaxy must have an ID to differentiate between other galaxies for color visualization.
+*Create your galaxy with specified spiral disk size, position, and star number. The galaxy must have an ID to differentiate between other galaxies for color visualization.*
 ```python
 milky_way = Galaxy(galaxy_width, galaxy_height, posX, posY, posZ, starNum, id)
 ```
 
-Sets the peculiar velocity of your galaxy (for interaction between multiple galaxies).
+*Sets the peculiar velocity of your galaxy (for interaction between multiple galaxies).*
 ```python
 milky_way.vel = np.array([velocityX, velocityY, velocityZ])
 ```
 
-Randomly distributes the stars in your galaxy based on distance from galactic center.
+*Randomly distributes the stars in your galaxy based on distance from galactic center.*
 ```python
 milky_way.setstardistribution() 
 ```
 
-Add this galaxy to the simulation
+*Add this galaxy to the simulation*
 ```python
 galaxies.append(milky_way)
 ```
