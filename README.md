@@ -4,13 +4,17 @@
 (https://github.com/samhollenbach/Galaxy2/LICENSE)
 [![Release Version](https://img.shields.io/badge/release-2.1-red.svg)](https://github.com/Tencent/mars/releases)
 
+## The Final Product
+
+![Example](resources/galaxy2.gif "Example Galaxy shown with the Reader.py with 400 particles")
+
+**Visualizing a single galaxy with 400 particles in the Reader.py program** 
+
 ## Background
 
-This is a project created by Sam Hollenbach as an independent research project at Macalester College.
+This simulation began as a open ended project for my Modern Astronomy course as a freshman at Macalester College. The first generation (Galaxy_v1) could only be visualized in 2D and had a very rudimentary Dark Matter approximation, as well as being very inefficient in many calculations. 
 
-The simulation began as a open ended project for my Modern Astronomy course as a freshman. The first generation (Galaxy_v1) could only be visualized in 2D and had a very rudimentary Dark Matter approximation, as well as being very inefficient in many calculations. 
-
-Galaxy_v1 can be found at [here](https://github.com/samhollenbach/Galaxy)
+Galaxy_v1 can be found [here](https://github.com/samhollenbach/Galaxy)
 
 ## Features of Galaxy2
 
@@ -19,40 +23,38 @@ Galaxy2 has been drasticly improved in simulation accuracy, code effciency, and 
 
 Notable features of v2.1:
 
--[NFW Dark Matter Profile integration](https://en.wikipedia.org/wiki/Navarro%E2%80%93Frenk%E2%80%93White_profile)
-
--Dark Matter analysis mode, to quickly determine how accurate the NFW profile is with specified constants
-
--[3D visualization](https://github.com/samhollenbach/Galaxy2/blob/master/Reader.py) using [matplotlib](http://matplotlib.org/)
-
--Parallel processing ability using [joblib](https://pythonhosted.org/joblib/)
-
--Improved code speed and readability
+* [Navarro-Frenk-White Dark Matter Profile](https://arxiv.org/abs/astro-ph/9508025) integration
+* Dark Matter analysis mode, to quickly determine how accurate the NFW profile is with specified constants
+* Parallel processing ability using [joblib](https://pythonhosted.org/joblib/)
+* Improved code speed and readability
+* 3D visualization with the [Reader.py](Reader.py) script using [matplotlib](http://matplotlib.org/)
+* Frame printout from Reader for movie creation
 
 ## Creating your own galaxy
 
 The format for creating a galaxy in Galaxy2 is a very simple 4 steps:
 
+**Create your galaxy with specified spiral disk size, position, and star number. The galaxy must have an ID to differentiate between other galaxies for color visualization.**
 ```python
-#Create your galaxy with specified spiral disk size, position, and star number
-#Must have an id to differentiate between other galaxies
 milky_way = Galaxy(galaxy_width, galaxy_height, posX, posY, posZ, starNum, id)
 ```
 
+**Sets the peculiar velocity of your galaxy (for interaction between multiple galaxies).**
 ```python
-#Sets the peculiar velocity of your galaxy (for interaction between multiple galaxies)
 milky_way.vel = np.array([velocityX, velocityY, velocityZ])
 ```
 
+**Randomly distributes the stars in your galaxy based on distance from galactic center.**
 ```python
-#Randomly distributes the stars in your galaxy 
 milky_way.setstardistribution() 
 ```
 
+**Add this galaxy to the simulation**
 ```python
-#Add this galaxy
 galaxies.append(milky_way)
 ```
+
+## Built in galaxies
 
 There are two built in methods for creating 1 or 2 galaxies:
 ```python
@@ -62,6 +64,31 @@ and
 ```python
 double_galaxy()
 ```
-These methods can be found in the [SimMain.py file](https://github.com/samhollenbach/Galaxy2/blob/master/SimMain.py)
+These methods can be found in the [SimMain.py file](SimMain.py)
 
-Contact me at shollenb@macalester.edu if you have any quesitons
+## The sim_data file
+
+The first line of the data file is always
+```python
+HEAD:{Number of Galaxies},{Total Particle Number}
+```
+This lets the reader know how many particles and galaxies to expect so it can draw the labels on the screen.
+
+
+The subsequent lines start with the iteration number, and for each iteration there is a line for every particle in the simulation. This means the total number of lines in the file will be **{Total Iterations}x{Total Particles}+1**
+
+The format for each iteration line is
+```python
+{Iteration},{Particle_X},{Particle_Y},{Particle_Z},{Source_Galaxy_ID}
+```
+
+The example sim_data file is [here](sim_data.txt)
+
+See the Reader.py for more info on how to parse the datafile.
+
+
+## Contact
+
+My name is Sam Hollenbach and I am a sophomore at Macalester College. I am majoring in computer science and physics with an astronomy emphasis.
+
+Please contact me at shollenb@macalester.edu if you have any quesitons or inquiries.
