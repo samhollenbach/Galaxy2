@@ -4,6 +4,7 @@
 (https://github.com/samhollenbach/Galaxy2/LICENSE)
 [![Release Version](https://img.shields.io/badge/release-2.1-red.svg)](https://github.com/Tencent/mars/releases)
 
+## The Final Product
 
 ![Example](resources/galaxy2.gif "Example Galaxy shown with the Reader.py with 400 particles")
 
