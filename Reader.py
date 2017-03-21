@@ -76,7 +76,7 @@ def read_sim():
 
                 try:
                     updateplot(iter, xs, ys, zs, galaxies, particles)
-                    break
+                    # break
                 except UnboundLocalError:
                     print("Improper HEAD line in your sim_data file, please fix this error and try again")
                     sys.exit()

@@ -26,16 +26,19 @@ class Galaxy:
         self.width = width
         self.height = height
         self.pos = np.array([x, y, z])
+        self.pitch = 0
+        self.roll = 0
         self.numstars = numstars
         self.color = color
         self.set_rand_multiplier()
 
+    def set_pitch_roll(self, pitch, roll):
+        self.pitch = pitch
+        self.roll = roll
+
     # Updates the position of the galactic center
     def update(self, t):
         self.pos = self.pos + (self.vel * t)
-        # self.x = self.x + self.vel[0] * t
-        # self.y = self.y + self.vel[1] * t
-        # self.z = self.z + self.vel[2] * t
 
     def setstardistribution(self):
         smbh = Star(self.smbh_mass, self.pos[0], self.pos[1], self.pos[2], self)
@@ -60,7 +63,11 @@ class Galaxy:
 
             # Mass in solar masses
             mass = 1 * (0.8 + random.random() * 10)
-            ts = Star(mass, self.pos[0] + x1, self.pos[1] + y1, self.pos[2] + z1, self)
+
+            star_pos = np.array([self.pos[0] + x1, self.pos[1] + y1, self.pos[2] + z1])
+            star_pos = self.apply_pitch_roll(star_pos)
+
+            ts = Star(mass, star_pos[0], star_pos[1], star_pos[2], self)
             self.set_star_velocity(ts)
             self.galaxy_stars.append(ts)
 
@@ -91,7 +98,7 @@ class Galaxy:
         vx = -velo * math.sin(theta)
         vy = velo * math.cos(theta)
         vz = 0
-        v = np.array([vx, vy, vz])
+        v = self.apply_pitch_roll(np.array([vx, vy, vz]))
         star.velocity = v + self.vel
 
     # Used to determine density of stars in galaxy by radius
@@ -115,11 +122,23 @@ class Galaxy:
             r -= self.star_density(n)
         return n
 
+    def yaw_rot(self, alpha):
+        return np.array([[math.cos(alpha), -math.sin(alpha), 0],
+                         [math.sin(alpha), math.cos(alpha), 0],
+                         [0, 0, 1]])
 
+    def pitch_rot(self, beta):
+        return np.array([[math.cos(beta), 0, math.sin(beta)],
+                         [0, 1, 0],
+                         [-math.sin(beta), 0, math.cos(beta)]])
 
+    def roll_rot(self, gamma):
+        return np.array([[1, 0, 0],
+                         [0, math.cos(gamma), -math.sin(gamma)],
+                         [0, math.sin(gamma), math.cos(gamma)]])
 
-
-
+    def apply_pitch_roll(self, array):
+        return array.dot(self.pitch_rot(self.pitch)).dot(self.roll_rot(self.roll))
 
 
 def printProgress(iteration, total, prefix='', suffix='', decimals=1, barLength=100):
