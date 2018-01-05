@@ -1,8 +1,8 @@
 # Galaxy2
 
-![license](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)
-(https://github.com/samhollenbach/Galaxy2/LICENSE)
-![Release Version](https://img.shields.io/badge/release-2.1-red.svg)(https://github.com/Tencent/mars/releases)
+[![license](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)
+(https://github.com/samhollenbach/Galaxy2/LICENSE)]
+[![Release Version](https://img.shields.io/badge/release-2.1-red.svg)(https://github.com/Tencent/mars/releases)]
 
 ## The Final Product
 
